@@ -6749,6 +6749,38 @@ msgstr "File của bạn là"
 msgid "Maximum allowed is 100 MB."
 msgstr "Giới hạn tối đa là 100 MB."
 
+#: templates/problem/data.html:328 templates/problem/data.html:866
+msgid "Uploading test data..."
+msgstr "Đang tải dữ liệu test lên..."
+
+#: templates/problem/data.html:343
+msgid "Upload complete. Processing test data..."
+msgstr "Tải lên hoàn tất. Đang xử lý dữ liệu test..."
+
+#: templates/problem/data.html:344
+msgid "Please wait while the server saves the test data."
+msgstr "Vui lòng chờ trong khi server lưu dữ liệu test."
+
+#: templates/problem/data.html:350
+msgid "Processing complete. Reloading..."
+msgstr "Xử lý hoàn tất. Đang tải lại..."
+
+#: templates/problem/data.html:354
+msgid "Upload failed."
+msgstr "Tải lên thất bại."
+
+#: templates/problem/data.html:355
+msgid "Please try again or check whether the file is valid."
+msgstr "Vui lòng thử lại hoặc kiểm tra file có hợp lệ không."
+
+#: templates/problem/data.html:363
+msgid "Please check your connection and try again."
+msgstr "Vui lòng kiểm tra kết nối rồi thử lại."
+
+#: templates/problem/data.html:369
+msgid "Upload cancelled."
+msgstr "Đã hủy tải lên."
+
 #: templates/problem/data.html:587
 msgid "Test file must be a ZIP file"
 msgstr "Tập tin dữ liệu phải có định dạng ZIP"

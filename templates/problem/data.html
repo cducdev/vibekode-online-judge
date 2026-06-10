@@ -261,6 +261,121 @@
                 id: "submit-button",
             }).appendTo($file_test.parent());
 
+            var uploadInProgress = false;
+            var $uploadProgress = $('#problem-data-upload-progress');
+            var $uploadProgressBar = $('#problem-data-upload-progress-bar');
+            var $uploadProgressText = $('#problem-data-upload-progress-text');
+            var $uploadProgressDetail = $('#problem-data-upload-progress-detail');
+
+            function format_bytes(bytes) {
+                if (!bytes)
+                    return '0 B';
+
+                var units = ['B', 'KB', 'MB', 'GB'];
+                var size = bytes;
+                var unit = 0;
+                while (size >= 1024 && unit < units.length - 1) {
+                    size /= 1024;
+                    unit++;
+                }
+                return size.toFixed(unit ? 1 : 0) + ' ' + units[unit];
+            }
+
+            function update_upload_progress(percent, text, detail) {
+                $uploadProgress.show();
+                $uploadProgressText.text(text);
+                $uploadProgressDetail.text(detail || '');
+
+                if (percent === null) {
+                    $uploadProgressBar.removeAttr('value').removeAttr('aria-valuenow');
+                    return;
+                }
+
+                percent = Math.max(0, Math.min(100, percent));
+                $uploadProgressBar.attr({
+                    value: percent,
+                    'aria-valuenow': percent.toFixed(0),
+                });
+            }
+
+            function set_upload_controls_disabled(disabled) {
+                $('form').find('input[type=submit], button[type=submit]').prop('disabled', disabled);
+                $file_test.prop('disabled', disabled);
+            }
+
+            function replace_page_from_upload(xhr) {
+                if (xhr.responseURL)
+                    history.replaceState(null, '', xhr.responseURL);
+                document.open();
+                document.write(xhr.responseText);
+                document.close();
+            }
+
+            function submit_form_with_upload_progress(form) {
+                var fileInput = $file_test.get(0);
+                if (!fileInput || !fileInput.files || !fileInput.files.length)
+                    return false;
+                if (!window.FormData || !window.XMLHttpRequest)
+                    return false;
+
+                var xhr = new XMLHttpRequest();
+                if (!xhr.upload)
+                    return false;
+
+                var formData = new FormData(form);
+                uploadInProgress = true;
+                set_upload_controls_disabled(true);
+                update_upload_progress(0, {{ _('Uploading test data...')|htmltojs }}, fileInput.files[0].name);
+
+                xhr.upload.addEventListener('progress', function (event) {
+                    if (!event.lengthComputable) {
+                        update_upload_progress(null, {{ _('Uploading test data...')|htmltojs }},
+                            format_bytes(event.loaded));
+                        return;
+                    }
+
+                    var percent = event.loaded / event.total * 100;
+                    update_upload_progress(percent, {{ _('Uploading test data...')|htmltojs }},
+                        percent.toFixed(0) + '% - ' + format_bytes(event.loaded) + ' / ' + format_bytes(event.total));
+                });
+
+                xhr.upload.addEventListener('load', function () {
+                    update_upload_progress(100, {{ _('Upload complete. Processing test data...')|htmltojs }},
+                        {{ _('Please wait while the server saves the test data.')|htmltojs }});
+                });
+
+                xhr.addEventListener('load', function () {
+                    uploadInProgress = false;
+                    if (xhr.status >= 200 && xhr.status < 400) {
+                        update_upload_progress(100, {{ _('Processing complete. Reloading...')|htmltojs }}, '');
+                        replace_page_from_upload(xhr);
+                    } else {
+                        set_upload_controls_disabled(false);
+                        update_upload_progress(null, {{ _('Upload failed.')|htmltojs }},
+                            {{ _('Please try again or check whether the file is valid.')|htmltojs }});
+                    }
+                });
+
+                xhr.addEventListener('error', function () {
+                    uploadInProgress = false;
+                    set_upload_controls_disabled(false);
+                    update_upload_progress(null, {{ _('Upload failed.')|htmltojs }},
+                        {{ _('Please check your connection and try again.')|htmltojs }});
+                });
+
+                xhr.addEventListener('abort', function () {
+                    uploadInProgress = false;
+                    set_upload_controls_disabled(false);
+                    update_upload_progress(null, {{ _('Upload cancelled.')|htmltojs }}, '');
+                });
+
+                xhr.open($(form).attr('method') || 'POST', $(form).attr('action') || window.location.href, true);
+                xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+                xhr.send(formData);
+                $('form').dirty('setAsClean');
+                return true;
+            }
+
             function swap_row($a, $b) {
                 var $a_order = $a.find('input[id$=order]'), $b_order = $b.find('input[id$=order]');
                 var order = $a_order.val();
@@ -337,7 +452,12 @@
                 $table.trigger('add-row', [$(this)]);
             });
 
-            $('form').submit(function () {
+            $('form').submit(function (event) {
+                if (uploadInProgress) {
+                    event.preventDefault();
+                    return false;
+                }
+
                 $table.find('tbody:first').find('tr').each(function () {
                     var filled = false;
                     $(this).find('input, select').each(function () {
@@ -360,6 +480,11 @@
                         $(this).attr('checked', true);
                     }
                 });
+
+                if (submit_form_with_upload_progress(this)) {
+                    event.preventDefault();
+                    return false;
+                }
             });
 
             var $total = $('#id_cases-TOTAL_FORMS');
@@ -681,6 +806,31 @@
             padding-bottom: 1em;
             background: #e99;
         }
+
+        #problem-data-upload-progress {
+            display: none;
+            margin: 0.75em 0 1em;
+            padding: 0.75em 1em;
+            border: 1px solid rgba(127, 127, 127, 0.35);
+            border-radius: 4px;
+            background: rgba(127, 127, 127, 0.08);
+        }
+
+        #problem-data-upload-progress progress {
+            display: block;
+            width: 100%;
+            height: 1.1em;
+            margin: 0.45em 0 0.25em;
+            accent-color: #2563eb;
+        }
+
+        #problem-data-upload-progress-text {
+            font-weight: 600;
+        }
+
+        #problem-data-upload-progress-detail {
+            min-height: 1.4em;
+        }
     </style>
 {% endblock %}
 
@@ -713,6 +863,11 @@
         <table class="table">
             {{ data_form.as_table() }}
         </table>
+        <div id="problem-data-upload-progress" role="status" aria-live="polite">
+            <div id="problem-data-upload-progress-text">{{ _('Uploading test data...') }}</div>
+            <progress id="problem-data-upload-progress-bar" max="100" value="0" aria-valuemin="0" aria-valuemax="100"></progress>
+            <div id="problem-data-upload-progress-detail"></div>
+        </div>
         <div class="alert alert-warning alert-dismissable" id="fill-test-case-noti" style="display: none;">
             <a class="close">x</a>
             <b>{{ _('Test cases have been filled automatically!') }}</b>
