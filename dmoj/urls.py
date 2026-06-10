@@ -8,6 +8,7 @@ from django.http import Http404, HttpResponsePermanentRedirect
 from django.urls import include, path, re_path, reverse
 from django.utils.translation import gettext_lazy as _
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.generic.base import RedirectView
 
 from judge.feed import AtomBlogFeed, AtomCommentFeed, AtomProblemFeed, BlogFeed, CommentFeed, ProblemFeed
 from judge.sitemap import sitemaps
@@ -101,6 +102,7 @@ def paged_list_view(view, name):
 
 urlpatterns = [
     path('', blog.PostList.as_view(template_name='home.html', title=_('Home')), kwargs={'page': 1}, name='home'),
+    path('favicon.ico', RedirectView.as_view(url=settings.STATIC_URL + 'icons/favicon.ico', permanent=False)),
     path('500/', exception),
     path('admin/', admin.site.urls),
     path('i18n/', include('django.conf.urls.i18n')),
