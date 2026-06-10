@@ -40,7 +40,7 @@
     {% block og_title %}{% endblock %}
     <meta property="og:site_name" content="{{ SITE_LONG_NAME }}">
     <meta property="og:url"
-          content="{{ DMOJ_SCHEME }}://{{ DMOJ_CANONICAL|default(site.domain) }}{{ request.get_full_path() }}">
+          content="{{ DMOJ_SCHEME }}://{{ DMOJ_CANONICAL|default(site.domain, true) }}{{ request.get_full_path() }}">
 
     {% block meta %}{% endblock %}
     {% if not INLINE_FONTAWESOME %}
@@ -59,7 +59,7 @@
         <link rel="stylesheet" type="text/css" href="{{ static('libs/select2/select2.css') }}">
     {% endcompress %}
     <link rel="canonical"
-          href="{{ DMOJ_SCHEME }}://{{ DMOJ_CANONICAL|default(site.domain) }}{{ request.get_full_path() }}">
+          href="{{ DMOJ_SCHEME }}://{{ DMOJ_CANONICAL|default(site.domain, true) }}{{ request.get_full_path() }}">
     {% if request.user.is_impersonate %}
         <style>
             #nav-container {
@@ -405,8 +405,8 @@
     <footer>
         <span id="footer-content">
             <br>
-            {{_('proudly powered by %(dmoj)s', dmoj=safe('<a style="color: #808080" href="https://dmoj.ca"><b>DMOJ</b></a>'))}} |
-            {{_('follow us on %(github)s and %(facebook)s', github=safe('<a style="color: #808080" href="https://github.com/VNOI-Admin/OJ"><b>Github</b></a>'), facebook=safe('<a style="color: #808080" href="https://www.facebook.com/vnoi.wiki"><b>Facebook</b></a>'))}}
+            <b>VibeKode Online Judge</b> |
+            {{_('proudly powered by %(dmoj)s', dmoj=safe('<a style="color: #808080" href="https://dmoj.ca"><b>DMOJ</b></a>'))}}
             {% if misc_config.footer %}
                 {{ misc_config.footer|safe }} |
             {% endif %}

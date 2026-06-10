@@ -1,4 +1,13 @@
-$highlight_blue: #1ba94c;
+$brand_blue: #2563eb;
+$brand_blue_hover: #3b82f6;
+$brand_blue_light: #60a5fa;
+$brand_blue_dark: #1d4ed8;
+$brand_blue_soft: #dbeafe;
+$brand_gradient: linear-gradient(90deg, $brand_blue 0%, $brand_blue_light 100%);
+$brand_gradient_soft: linear-gradient(135deg, #ffffff 0%, $brand_blue_soft 100%);
+$accent_amber: #f59e0b;
+
+$highlight_blue: $brand_blue;
 $announcement_red: #ae0000;
 
 $base_font_size: 15px;

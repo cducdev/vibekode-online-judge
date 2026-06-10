@@ -31,9 +31,7 @@
     white-space: nowrap;
     font-weight: 400;
     line-height: 1.4;
-    background: rgb(51, 122, 183) none repeat scroll 0 (0% / auto) padding-box border-box;
-    background: -webkit-linear-gradient(top, #337ab7 0, #265a88 100%) repeat-x;
-    background: linear-gradient(to bottom, #337ab7 0, #265a88 100%) repeat-x;
+    background: $brand_gradient;
     border-radius: $widget_border_radius;
     padding: 6px 12px;
     display: block;
@@ -44,12 +42,12 @@
     font-size: $base_font_size;
 
     &:hover {
-        background: #265a88;
+        background: linear-gradient(90deg, $brand_blue_hover 0%, $brand_blue_light 100%);
     }
 
     &:active {
-        border-color: #245580;
-        background: #265a88;
+        border-color: $brand_blue_dark;
+        background: $brand_blue;
     }
 
     &.full {
@@ -85,13 +83,13 @@ input {
         font-size: $base_font_size;
 
         &:hover {
-            border-color: rgba(82, 168, 236, 0.8);
-            box-shadow: inset 0 1px 1px rgba($color_primary100, 0.075), 0 0 4px rgba(82, 168, 236, 0.6);
+            border-color: rgba($brand_blue_light, 0.9);
+            box-shadow: inset 0 1px 1px rgba($color_primary100, 0.075), 0 0 4px rgba($brand_blue_light, 0.5);
         }
 
         &:focus {
-            border-color: rgba(82, 168, 236, 0.8);
-            box-shadow: inset 0 1px 1px rgba($color_primary100, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+            border-color: rgba($brand_blue_light, 0.9);
+            box-shadow: inset 0 1px 1px rgba($color_primary100, 0.075), 0 0 8px rgba($brand_blue_light, 0.55);
             outline: 0;
         }
     }
@@ -129,13 +127,13 @@ textarea {
 }
 
 textarea:hover {
-    border-color: rgba(82, 168, 236, 0.8);
-    box-shadow: inset 0 1px 1px rgba($color_primary100, 0.075), 0 0 4px rgba(82, 168, 236, 0.6);
+    border-color: rgba($brand_blue_light, 0.9);
+    box-shadow: inset 0 1px 1px rgba($color_primary100, 0.075), 0 0 4px rgba($brand_blue_light, 0.5);
 }
 
 textarea:focus {
-    border-color: rgba(82, 168, 236, 0.8);
-    box-shadow: inset 0 1px 1px rgba($color_primary100, 0.075), 0 0 8px rgba(82, 168, 236, 0.6);
+    border-color: rgba($brand_blue_light, 0.9);
+    box-shadow: inset 0 1px 1px rgba($color_primary100, 0.075), 0 0 8px rgba($brand_blue_light, 0.55);
     outline: 0;
 }
 

@@ -2,23 +2,23 @@
 
 $is_light_theme: false;
 
-$color_primary0: #0f0f0f;
-$color_primary5: #111;      // light background
-$color_primary10: #181818;  // background
-$color_primary25: #3b3b3b;  // border
-$color_primary33: #555;     // widget
-$color_primary50: #808080;
-$color_primary66: #aaa;     // tabs
-$color_primary75: #ccc;     // widget
-$color_primary90: #eee;
-$color_primary100: #f8f8f8;
+$color_primary0: #101113;
+$color_primary5: #181a1f;   // light background
+$color_primary10: #20232a;  // background
+$color_primary25: #3a414c;  // border
+$color_primary33: #687386;  // widget
+$color_primary50: #9aa6b7;
+$color_primary66: #c4cad4;  // tabs
+$color_primary75: #d7dde7;  // widget
+$color_primary90: #f3f6fa;
+$color_primary100: #ffffff;
 
-$color_link50: #06d;    // default (title)
-$color_link75: #6bf;    // default
-$color_link100: #49e;   // hover
-$color_link200: #d83;   // active
+$color_link50: #60a5fa;     // default (title)
+$color_link75: #93c5fd;     // default
+$color_link100: #ffffff;    // hover
+$color_link200: #60a5fa;    // active
 
-$color_pageBg: #222;    // #222 because some elements should be darker than pageBg
+$color_pageBg: #101113;
 
 // custom one-off colours
 $color_contest_ranking_disqualified: #622;
@@ -42,15 +42,15 @@ $color_user_submission_activity2: #006d32;
 $color_user_submission_activity3: #26a641;
 $color_user_submission_activity4: #39d353;
 
-$color_info25: #023;
-$color_info50: #068;
-$color_info100: #7df;
+$color_info25: #172554;
+$color_info50: #1d4ed8;
+$color_info100: #93c5fd;
 $color_success25: #031;
 $color_success50: #172;
 $color_success100: #6f8;
-$color_warning25: #320;
-$color_warning50: #960;
-$color_warning100: #fd6;
+$color_warning25: #451a03;
+$color_warning50: #b45309;
+$color_warning100: #fbbf24;
 $color_danger25: #311;
 $color_danger50: #822;
 $color_danger100: #f99;
@@ -65,7 +65,7 @@ $color_problem_tab_border: #444;
 $color_problem_tab_text: #ccc;
 $color_problem_tab_hover_bg: #3a3a3a;
 $color_problem_tab_active_bg: #1e1e1e;
-$color_problem_tab_active_text: #4da3ff;
+$color_problem_tab_active_text: #93c5fd;
 $color_problem_submit_bg: #1e1e1e;
 
 // Blog-specific dark mode colors
@@ -79,7 +79,7 @@ $color_blog_text_muted: #707070;
 $color_blog_text_tertiary: #888888;
 $color_blog_hover_bg: #333333;
 $color_blog_active_bg: #404040;
-$color_blog_accent: #6bf;
+$color_blog_accent: #93c5fd;
 $color_blog_code_bg: #2d2d2d;
 $color_blog_blockquote_border: #505050;
 $color_blog_vote_active: #4ade80;

@@ -69,12 +69,28 @@ span.organization {
         }
     }
 
-    th a {
-        color: $color_primary0;
+    th,
+    th a,
+    th .rate-group {
+        color: #fff;
+    }
 
+    th a {
         &:link,
-        &:visited {
-            color: $color_primary0;
+        &:visited,
+        &:hover,
+        &:active {
+            color: #fff;
+        }
+    }
+
+    th svg.rate-box.rate-primary0 {
+        circle {
+            stroke: #fff;
+        }
+
+        path {
+            fill: #fff;
         }
     }
 }
