@@ -177,6 +177,35 @@ form.contest-join-pseudotab {
     }
 }
 
+.contest-edit-form {
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+
+    .django-as-table {
+        width: 100%;
+
+        td {
+            white-space: normal;
+        }
+
+        input:not([type='checkbox']),
+        textarea,
+        select,
+        .select2 {
+            max-width: 100%;
+            box-sizing: border-box;
+        }
+    }
+}
+
+.contest-problems-table {
+    width: 100%;
+}
+
 .contest-participation-operation {
     float: right;
     display: flex;

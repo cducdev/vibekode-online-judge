@@ -49,7 +49,7 @@ class UserImportForm(forms.Form):
         label=_('CSV file'),
         help_text=_(
             'Upload a UTF-8 CSV file with columns: username, fullname, organizations. '
-            'The email and organizations columns are optional.'
+            'The email and organizations columns are optional.',
         ),
     )
 

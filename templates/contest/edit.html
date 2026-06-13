@@ -186,7 +186,7 @@
             padding-right: 0.5em;
         }
 
-        tbody td {
+        #form_set td {
             white-space: nowrap;
         }
     </style>
@@ -210,7 +210,7 @@
             {{ form.DELETE }}
         {% endif %}
         </td>
-    <tr>
+    </tr>
 {%- endmacro %}
 
 <div>
@@ -222,7 +222,7 @@
             </div>
         {% endif %}
     {% endblock %}
-    <form action="" method="post" class="form-area" style="display: flex; justify-content: center; flex-direction: column;">
+    <form action="" method="post" class="form-area contest-edit-form">
         {% csrf_token %}
         {{ contest_problem_formset.management_form }}
         {% if contest_problem_formset.non_form_errors() %}
@@ -231,7 +231,7 @@
         <table class="django-as-table">{{ form.as_table() }}</table>
         <hr>
         <center><h3> {{ _('Problems') }} </h3></center>
-        <table class="table">
+        <table class="table contest-problems-table">
             <thead>
                 <tr>
                     <th class="order-column"></th>

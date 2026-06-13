@@ -654,10 +654,10 @@ class UserImport(LoginRequiredMixin, TitleMixin, FormView):
             self.request,
             _('Created %(created)d users, updated organization memberships for %(updated)d users, '
               'left %(unchanged)d existing users unchanged.') % {
-                  'created': created,
-                  'updated': updated,
-                  'unchanged': unchanged,
-              },
+                'created': created,
+                'updated': updated,
+                'unchanged': unchanged,
+            },
         )
         return self.render_to_response(self.get_context_data(
             form=form,

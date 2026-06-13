@@ -15,7 +15,8 @@
 .django-as-table {
     border-collapse:collapse;
 }
-.django-as-table th, td {
+.django-as-table th,
+.django-as-table td {
     padding-bottom: 10px;
 }
 .django-as-table th {
