@@ -8688,6 +8688,141 @@ msgstr "Không tìm thấy URL rút gọn."
 msgid "This shortened URL is not active."
 msgstr "URL rút gọn này không hoạt động."
 
+#: judge/utils/user_import.py
+msgid "CSV file"
+msgstr "File CSV"
+
+#: judge/utils/user_import.py
+msgid "Upload a UTF-8 CSV file with columns: username, fullname, organizations. The email and organizations columns are optional."
+msgstr "Tải lên file CSV UTF-8 có các cột: username, fullname, organizations. Cột email và organizations là không bắt buộc."
+
+#: judge/utils/user_import.py
+msgid "CSV file must be UTF-8 encoded."
+msgstr "File CSV phải được mã hóa UTF-8."
+
+#: judge/utils/user_import.py
+msgid "CSV file is empty."
+msgstr "File CSV đang trống."
+
+#: judge/utils/user_import.py
+msgid "CSV file must include a header row."
+msgstr "File CSV phải có dòng header."
+
+#: judge/utils/user_import.py
+#, python-format
+msgid "CSV file is missing required columns: %s."
+msgstr "File CSV thiếu các cột bắt buộc: %s."
+
+#: judge/utils/user_import.py
+msgid "username is required"
+msgstr "username là bắt buộc"
+
+#: judge/utils/user_import.py
+msgid "username is duplicated in this CSV"
+msgstr "username bị trùng trong file CSV này"
+
+#: judge/utils/user_import.py
+msgid "username is too long"
+msgstr "username quá dài"
+
+#: judge/utils/user_import.py
+msgid "fullname is too long"
+msgstr "fullname quá dài"
+
+#: judge/utils/user_import.py
+msgid "email is too long"
+msgstr "email quá dài"
+
+#: judge/utils/user_import.py
+#, python-format
+msgid "Line %(line)d: %(errors)s"
+msgstr "Dòng %(line)d: %(errors)s"
+
+#: judge/utils/user_import.py
+msgid "CSV file does not contain any users."
+msgstr "File CSV không có thành viên nào."
+
+#: judge/utils/user_import.py
+#, python-format
+msgid "CSV file cannot contain more than %d users."
+msgstr "File CSV không được chứa quá %d thành viên."
+
+#: judge/utils/user_import.py
+#, python-format
+msgid "organization \"%s\" does not exist"
+msgstr "tổ chức \"%s\" không tồn tại"
+
+#: judge/utils/user_import.py
+#, python-format
+msgid "you are not allowed to import users into organization \"%s\""
+msgstr "bạn không được phép import người dùng vào tổ chức \"%s\""
+
+#: judge/utils/user_import.py
+#, python-format
+msgid "Organization \"%(organization)s\" only has %(remaining)d member slots left, but this CSV would add %(count)d members."
+msgstr "Tổ chức \"%(organization)s\" chỉ còn %(remaining)d vị trí thành viên, nhưng file CSV này sẽ thêm %(count)d thành viên."
+
+#: judge/utils/user_import.py
+msgid "Created and added"
+msgstr "Đã tạo và thêm"
+
+#: judge/utils/user_import.py
+msgid "Added existing user"
+msgstr "Đã thêm tài khoản có sẵn"
+
+#: judge/utils/user_import.py
+msgid "Already a member"
+msgstr "Đã là thành viên"
+
+#: judge/utils/user_import.py
+msgid "Existing user"
+msgstr "Tài khoản đã tồn tại"
+
+#: templates/user/list.html
+msgid "Import users from CSV"
+msgstr "Import thành viên từ CSV"
+
+#: judge/views/user.py
+msgid "Can't import users"
+msgstr "Không thể import người dùng"
+
+#: judge/views/user.py
+msgid "You are not allowed to import users."
+msgstr "Bạn không được phép import người dùng."
+
+#: judge/views/user.py
+#, python-format
+msgid "Created %(created)d users, updated organization memberships for %(updated)d users, left %(unchanged)d existing users unchanged."
+msgstr "Đã tạo %(created)d tài khoản, cập nhật thành viên tổ chức cho %(updated)d tài khoản, giữ nguyên %(unchanged)d tài khoản đã tồn tại."
+
+#: judge/views/user.py templates/user/import-users.html
+msgid "Import users"
+msgstr "Import thành viên"
+
+#: templates/user/import-users.html
+msgid "Download sample CSV"
+msgstr "Tải file CSV mẫu"
+
+#: templates/user/import-users.html
+msgid "CSV columns: username, fullname, organizations. The email column is optional. Leave organizations blank to create a user without organization. Use organization slugs separated by semicolons when adding memberships."
+msgstr "Các cột CSV: username, fullname, organizations. Cột email là không bắt buộc. Để trống organizations để tạo tài khoản không thuộc tổ chức nào. Dùng slug tổ chức, phân tách bằng dấu chấm phẩy, khi cần thêm thành viên vào tổ chức."
+
+#: templates/user/import-users.html
+msgid "Import result"
+msgstr "Kết quả import"
+
+#: templates/user/import-users.html
+msgid "Line"
+msgstr "Dòng"
+
+#: templates/user/import-users.html
+msgid "Credential CSV"
+msgstr "CSV tài khoản"
+
+#: templates/user/import-users.html
+msgid "Passwords are shown only for newly created users and are not stored in plaintext."
+msgstr "Mật khẩu chỉ hiển thị cho tài khoản mới tạo và không được lưu ở dạng plaintext."
+
 #~ msgid "Order in contest"
 #~ msgstr "Thứ tự của bài tập trong kỳ thi"
 

@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block media %}
+    <style>
+        .user-import {
+            max-width: 980px;
+        }
+
+        .user-import textarea {
+            box-sizing: border-box;
+            width: 100%;
+            min-height: 9em;
+            font-family: monospace;
+        }
+
+        .user-import .help {
+            color: #666;
+            margin: 0.5em 0 1em;
+        }
+
+        .user-import .action-row {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75em;
+            margin: 0 0 1em;
+        }
+
+        .user-import .submit-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 1em;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    {% set tab = 'list' %}
+    {% include "user/user-list-tabs.html" %}
+
+    <div id="common-content">
+        <div id="content-left" class="user-import users">
+            {% include "messages.html" %}
+
+            <div class="action-row">
+                <a href="{{ sample_url }}" class="button">
+                    <i class="fa fa-download"></i> {{ _('Download sample CSV') }}
+                </a>
+            </div>
+
+            <form action="" method="post" class="form-area" enctype="multipart/form-data">
+                {% if form.errors %}
+                    <div id="form-errors">{{ form.csv_file.errors }}</div>
+                {% endif %}
+                {% csrf_token %}
+                <table class="django-as-table">{{ form.as_table() }}</table>
+                <p class="help">
+                    {{ _('CSV columns: username, fullname, organizations. The email column is optional. Leave organizations blank to create a user without organization. Use organization slugs separated by semicolons when adding memberships.') }}
+                </p>
+                <div class="submit-row">
+                    <button class="submit-bar" type="submit">{{ _('Import users') }}</button>
+                </div>
+            </form>
+
+            {% if results %}
+                <h3>{{ _('Import result') }}</h3>
+                <div class="h-scrollable-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>{{ _('Line') }}</th>
+                                <th>{{ _('Username') }}</th>
+                                <th>{{ _('Full name') }}</th>
+                                <th>{{ _('Email') }}</th>
+                                <th>{{ _('Organizations') }}</th>
+                                <th>{{ _('Password') }}</th>
+                                <th>{{ _('Status') }}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                                <tr>
+                                    <td>{{ result.line }}</td>
+                                    <td>{{ result.username }}</td>
+                                    <td>{{ result.fullname }}</td>
+                                    <td>{{ result.email }}</td>
+                                    <td>
+                                        {% if result.organizations %}
+                                            {{ result.organizations }}
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if result.password %}
+                                            <code>{{ result.password }}</code>
+                                        {% else %}
+                                            -
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ result.status }}</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <h3>{{ _('Credential CSV') }}</h3>
+                <p class="help">
+                    {{ _('Passwords are shown only for newly created users and are not stored in plaintext.') }}
+                </p>
+                <textarea readonly>{{ credential_csv }}</textarea>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

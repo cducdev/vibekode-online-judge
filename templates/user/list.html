@@ -7,6 +7,16 @@
     {% include "user/user-list-tabs.html" %}
 {% endblock %}
 
+{% block before_users_table %}
+    {% if can_import_users %}
+        <div style="margin-bottom: 1em; text-align: right;">
+            <a href="{{ url('user_import') }}" class="button">
+                <i class="fa fa-upload"></i> {{ _('Import users from CSV') }}
+            </a>
+        </div>
+    {% endif %}
+{% endblock %}
+
 {% block users_table %}
     {% include "user/users-table.html" %}
 {% endblock %}

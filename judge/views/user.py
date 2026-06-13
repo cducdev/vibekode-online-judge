@@ -6,6 +6,7 @@ from operator import attrgetter, itemgetter
 
 import pytz
 from django.conf import settings
+from django.contrib import messages
 from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -46,13 +47,15 @@ from judge.utils.pwned import PwnedPasswordsValidator
 from judge.utils.ranker import ranker
 from judge.utils.subscription import Subscription
 from judge.utils.unicode import utf8text
+from judge.utils.user_import import UserCsvImporter, UserImportForm, build_credential_csv, build_sample_csv, \
+    can_import_users
 from judge.utils.views import DiggPaginatorMixin, QueryStringSortMixin, SingleObjectFormView, TitleMixin, \
     add_file_response, generic_message
 from judge.views.blog import PostListBase
 from .contests import ContestRanking
 
 __all__ = ['UserPage', 'UserAboutPage', 'UserProblemsPage', 'UserCommentPage', 'UserDownloadData', 'UserPrepareData',
-           'users', 'edit_profile']
+           'UserImport', 'users', 'edit_profile']
 
 
 def remap_keys(iterable, mapping):
@@ -601,9 +604,66 @@ class UserList(QueryStringSortMixin, InfinitePaginationMixin, DiggPaginatorMixin
             rank=self.paginate_by * (context['page_obj'].number - 1),
         )
         context['first_page_href'] = '.'
+        context['can_import_users'] = can_import_users(self.request)
         context.update(self.get_sort_context())
         context.update(self.get_sort_paginate_context())
         return context
+
+
+class UserImport(LoginRequiredMixin, TitleMixin, FormView):
+    template_name = 'user/import-users.html'
+    form_class = UserImportForm
+    title = gettext_lazy('Import users')
+
+    def dispatch(self, request, *args, **kwargs):
+        if not can_import_users(request):
+            return generic_message(request, _("Can't import users"),
+                                   _('You are not allowed to import users.'), status=403)
+        return super().dispatch(request, *args, **kwargs)
+
+    def get(self, request, *args, **kwargs):
+        if request.GET.get('sample') == '1':
+            return self.get_sample_response()
+        return super().get(request, *args, **kwargs)
+
+    def get_sample_response(self):
+        response = HttpResponse(build_sample_csv(), content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment; filename="users-sample.csv"'
+        return response
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['sample_url'] = '%s?sample=1' % reverse('user_import')
+        return context
+
+    def form_valid(self, form):
+        importer = UserCsvImporter(self.request)
+        try:
+            rows = importer.parse_csv(form.cleaned_data['csv_file'])
+            importer.validate_slots(rows)
+        except ValidationError as error:
+            form.add_error('csv_file', error)
+            return self.form_invalid(form)
+
+        results = importer.import_rows(rows)
+        created = sum(1 for result in results if result['created'])
+        updated = sum(1 for result in results if result['added'])
+        unchanged = sum(1 for result in results if not result['created'] and not result['added'])
+
+        messages.success(
+            self.request,
+            _('Created %(created)d users, updated organization memberships for %(updated)d users, '
+              'left %(unchanged)d existing users unchanged.') % {
+                  'created': created,
+                  'updated': updated,
+                  'unchanged': unchanged,
+              },
+        )
+        return self.render_to_response(self.get_context_data(
+            form=form,
+            results=results,
+            credential_csv=build_credential_csv(results),
+        ))
 
 
 user_list_view = UserList.as_view()
