@@ -799,7 +799,7 @@ AUTHENTICATION_BACKENDS = (
     'judge.ip_auth.IPBasedAuthBackend',
 )
 
-REGISTRATION_OPEN = True
+REGISTRATION_OPEN = False
 
 SOCIAL_AUTH_PIPELINE = (
     'social_core.pipeline.social_auth.social_details',
