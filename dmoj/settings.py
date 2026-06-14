@@ -712,11 +712,11 @@ MARTOR_MARKDOWNIFY_URL = '/widgets/preview/default'
 MARTOR_SEARCH_USERS_URL = '/widgets/martor/search-user'
 MARTOR_UPLOAD_URL = '/widgets/martor/upload-image'
 MARTOR_MARKDOWN_BASE_MENTION_URL = '/user/'
-MARTOR_UPLOAD_URL_PREFIX = '/martor'
+MARTOR_UPLOAD_URL_PREFIX = '/media/martor'
 
 # Directory under MEDIA_ROOT to use to store image uploaded through martor.
 MARTOR_UPLOAD_MEDIA_DIR = 'martor'
-MARTOR_UPLOAD_SAFE_EXTS = {'.jpg', '.png', '.gif', '.svg'}
+MARTOR_UPLOAD_SAFE_EXTS = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
 
 PDF_STATEMENT_UPLOAD_URL_PREFIX = '/pdf'
 PDF_STATEMENT_UPLOAD_MEDIA_DIR = 'pdf'
