@@ -3226,7 +3226,7 @@ msgid "How did you corrupt the custom grader path?"
 msgstr ""
 
 #: judge/utils/problem_data.py:185
-msgid "You must specify both input and output files."
+msgid "You must specify at least one input or output file."
 msgstr ""
 
 #: judge/utils/problem_data.py:189
@@ -3866,6 +3866,14 @@ msgstr ""
 
 #: judge/views/problem_data.py:62
 msgid "Output to file"
+msgstr ""
+
+#: judge/views/problem_data.py:62
+msgid "Leave blank to use stdin."
+msgstr ""
+
+#: judge/views/problem_data.py:64
+msgid "Leave blank to use stdout."
 msgstr ""
 
 #: judge/views/problem_data.py:67

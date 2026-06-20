@@ -621,13 +621,15 @@ class PolygonImporter:
             io_input_file = judging.get('input-file', '')
             io_output_file = judging.get('output-file', '')
 
-            if io_input_file != '' and io_output_file != '':
+            if io_input_file != '' or io_output_file != '':
                 self.log('Use File IO.')
-                self.log('Input file:', io_input_file)
-                self.log('Output file:', io_output_file)
                 self.meta['grader_args']['io_method'] = 'file'
-                self.meta['grader_args']['io_input_file'] = io_input_file
-                self.meta['grader_args']['io_output_file'] = io_output_file
+                if io_input_file:
+                    self.log('Input file:', io_input_file)
+                    self.meta['grader_args']['io_input_file'] = io_input_file
+                if io_output_file:
+                    self.log('Output file:', io_output_file)
+                    self.meta['grader_args']['io_output_file'] = io_output_file
 
     def parse_statements(self):
         # Set default values

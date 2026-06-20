@@ -577,13 +577,20 @@ class Problem(models.Model):
         if grader_args:
             grader_args = json.loads(grader_args)
             if grader_args.get('io_method', '') == 'file':
-                if grader_args.get('io_input_file', '') == '' or grader_args.get('io_output_file', '') == '':
+                io_input_file = grader_args.get('io_input_file', '')
+                io_output_file = grader_args.get('io_output_file', '')
+                if not isinstance(io_input_file, str) or not isinstance(io_output_file, str):
+                    return {'method': 'unknown'}
+
+                if io_input_file == '' and io_output_file == '':
                     return {'method': 'unknown'}
 
                 return {
                     'method': 'file',
-                    'input': grader_args['io_input_file'],
-                    'output': grader_args['io_output_file'],
+                    'input': io_input_file or 'stdin',
+                    'output': io_output_file or 'stdout',
+                    'input_is_file': bool(io_input_file),
+                    'output_is_file': bool(io_output_file),
                 }
 
         return {'method': 'standard'}

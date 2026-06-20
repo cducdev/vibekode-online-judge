@@ -282,11 +282,23 @@
     {% elif problem.io_method.method == 'file' %}
         <div class="problem-info-entry">
             <i class="fa fa-keyboard-o fa-fw"></i><span class="pi-name">{{ _('Input:') }}</span>
-            <span class="pi-value"><i>{{ problem.io_method.input }}</i></span>
+            <span class="pi-value">
+                {% if problem.io_method.input_is_file %}
+                    <i>{{ problem.io_method.input }}</i>
+                {% else %}
+                    stdin
+                {% endif %}
+            </span>
         </div>
         <div class="problem-info-entry">
             <i class="fa fa-print fa-fw"></i><span class="pi-name">{{ _('Output:') }}</span>
-            <span class="pi-value"><i>{{ problem.io_method.output }}</i></span>
+            <span class="pi-value">
+                {% if problem.io_method.output_is_file %}
+                    <i>{{ problem.io_method.output }}</i>
+                {% else %}
+                    stdout
+                {% endif %}
+            </span>
         </div>
     {% endif %}
 

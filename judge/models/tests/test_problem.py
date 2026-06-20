@@ -1,12 +1,16 @@
+import json
+
 from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.utils import timezone
 
-from judge.models import ContestParticipation, Language, LanguageLimit, Problem
+from judge.models import ContestParticipation, Language, LanguageLimit, Problem, ProblemData, \
+    ProblemTestCase as ProblemCase
 from judge.models.problem import ProblemTestcaseAccess, disallowed_characters_validator
 from judge.models.tests.util import CommonDataMixin, create_contest, create_contest_participation, \
     create_contest_problem, create_organization, create_problem, create_problem_type, create_solution, \
     create_user
+from judge.utils.problem_data import ProblemDataCompiler, ProblemDataError
 
 
 class ProblemTestCase(CommonDataMixin, TestCase):
@@ -151,6 +155,82 @@ class ProblemTestCase(CommonDataMixin, TestCase):
             self.assertEqual(memory_limit, 131072)
         for common_name, time_limit in self.basic_problem.language_time_limit:
             self.assertEqual(time_limit, 100)
+
+    def _make_file_io_init(self, code, grader_args):
+        problem = create_problem(code=code)
+        data = ProblemData.objects.create(
+            problem=problem,
+            grader='standard',
+            grader_args=json.dumps(grader_args),
+            checker='standard',
+        )
+        ProblemCase.objects.create(
+            dataset=problem,
+            order=1,
+            type='C',
+            input_file='case.in',
+            output_file='case.out',
+            points=1,
+            is_pretest=False,
+            checker='standard',
+        )
+        compiler = ProblemDataCompiler(
+            problem,
+            data,
+            problem.cases.all().order_by('order'),
+            {'case.in', 'case.out'},
+        )
+        return problem, compiler.make_init()
+
+    def test_file_io_input_file_stdout(self):
+        problem, init = self._make_file_io_init('file_input_stdout', {
+            'io_method': 'file',
+            'io_input_file': 'task.inp',
+        })
+
+        self.assertEqual(init['file_io'], {'input': 'task.inp'})
+        self.assertEqual(problem.io_method, {
+            'method': 'file',
+            'input': 'task.inp',
+            'output': 'stdout',
+            'input_is_file': True,
+            'output_is_file': False,
+        })
+
+    def test_file_io_stdin_output_file(self):
+        problem, init = self._make_file_io_init('stdin_file_output', {
+            'io_method': 'file',
+            'io_output_file': 'task.out',
+        })
+
+        self.assertEqual(init['file_io'], {'output': 'task.out'})
+        self.assertEqual(problem.io_method, {
+            'method': 'file',
+            'input': 'stdin',
+            'output': 'task.out',
+            'input_is_file': False,
+            'output_is_file': True,
+        })
+
+    def test_file_io_input_and_output_files(self):
+        problem, init = self._make_file_io_init('file_input_output', {
+            'io_method': 'file',
+            'io_input_file': 'task.inp',
+            'io_output_file': 'task.out',
+        })
+
+        self.assertEqual(init['file_io'], {'input': 'task.inp', 'output': 'task.out'})
+        self.assertEqual(problem.io_method, {
+            'method': 'file',
+            'input': 'task.inp',
+            'output': 'task.out',
+            'input_is_file': True,
+            'output_is_file': True,
+        })
+
+    def test_file_io_requires_at_least_one_file(self):
+        with self.assertRaisesMessage(ProblemDataError, 'You must specify at least one input or output file.'):
+            self._make_file_io_init('file_io_empty', {'io_method': 'file'})
 
     def test_basic_problem_methods(self):
         self.assertTrue(self.basic_problem.is_editor(self.users['normal'].profile))

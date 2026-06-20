@@ -3629,8 +3629,8 @@ msgid "How did you corrupt the custom grader path?"
 msgstr "Phá kiểu gì mà mất tiêu grader rồi?"
 
 #: judge/utils/problem_data.py:178
-msgid "You must specify both input and output files."
-msgstr "Bạn phải chỉ định cả file input và output."
+msgid "You must specify at least one input or output file."
+msgstr "Bạn phải chỉ định ít nhất một file input hoặc output."
 
 #: judge/utils/problem_data.py:182
 msgid "Input/Output file must be a string."
@@ -4436,6 +4436,14 @@ msgstr "Tập tin đầu vào"
 #: judge/views/problem_data.py:62
 msgid "Output to file"
 msgstr "Tập tin đầu ra"
+
+#: judge/views/problem_data.py:62
+msgid "Leave blank to use stdin."
+msgstr "Để trống để dùng stdin."
+
+#: judge/views/problem_data.py:64
+msgid "Leave blank to use stdout."
+msgstr "Để trống để dùng stdout."
 
 #: judge/views/problem_data.py:67
 msgid "Your zip file is invalid!"
