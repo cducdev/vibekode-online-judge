@@ -27,7 +27,8 @@
                 $('.vote-good').toggle(!contributive);
             }
 
-            $('.close-ticket, .open-ticket').click(function () {
+            $('.close-ticket, .open-ticket').click(function (event) {
+                event.preventDefault();
                 var open = $(this).attr('data-open') == '1';
                 $.ajax({
                     url: $(this).attr('data-ajax'), type: 'POST',
@@ -38,9 +39,11 @@
                         alert({{ _('Could not change ticket: {error}')|htmltojs }}.replace('{error}', data.responseText));
                     }
                 });
+                return false;
             });
 
-            $('.vote-good, .vote-norm').click(function () {
+            $('.vote-good, .vote-norm').click(function (event) {
+                event.preventDefault();
                 var contributive = $(this).attr('data-contributive') == '1';
                 $.ajax({
                     url: $(this).attr('data-ajax'), type: 'POST',
@@ -51,6 +54,7 @@
                         alert('Could not change ticket: ' + data.responseText);
                     }
                 });
+                return false;
             });
 
             $('.edit-notes').featherlight({
@@ -288,8 +292,8 @@
                                 </div>
                             </div>
                             <div class="autofill-controls">
-                                <button class="lang-toggle active" data-lang="en">EN</button>
-                                <button class="lang-toggle" data-lang="vi">VI</button>
+                                <button type="button" class="lang-toggle active" data-lang="en">EN</button>
+                                <button type="button" class="lang-toggle" data-lang="vi">VI</button>
                             </div>
                         </div>
                     {% endif %}
@@ -349,15 +353,15 @@
                         </div>
                     </div>
 
-                    <button data-ajax="{{ url('ticket_good', ticket.id) }}" data-contributive="1" class="vote-good"
+                    <button type="button" data-ajax="{{ url('ticket_good', ticket.id) }}" data-contributive="1" class="vote-good"
                         {% if ticket.is_contributive %}style="display: none"{% endif %}>{{ _('Upvote') }}</button>
-                    <button data-ajax="{{ url('ticket_norm', ticket.id) }}" data-contributive="0" class="vote-norm"
+                    <button type="button" data-ajax="{{ url('ticket_norm', ticket.id) }}" data-contributive="0" class="vote-norm"
                         {% if not ticket.is_contributive %}style="display: none"{% endif %}>{{ _('Undo vote') }}</button>
                 {% endif %}
 
-                <button data-ajax="{{ url('ticket_close', ticket.id) }}" data-open="0" class="close-ticket"
+                <button type="button" data-ajax="{{ url('ticket_close', ticket.id) }}" data-open="0" class="close-ticket"
                         {% if not ticket.is_open %}style="display: none"{% endif %}>{{ _('Close ticket') }}</button>
-                <button data-ajax="{{ url('ticket_open', ticket.id) }}" data-open="1" class="open-ticket"
+                <button type="button" data-ajax="{{ url('ticket_open', ticket.id) }}" data-open="1" class="open-ticket"
                         {% if ticket.is_open %}style="display: none"{% endif %}>{{ _('Reopen ticket') }}</button>
             </div>
         </aside>

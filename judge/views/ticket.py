@@ -217,7 +217,7 @@ class TicketView(TitleMixin, TicketMixin, SingleObjectFormView):
         context['ticket_messages'] = self.object.messages.select_related('user__user')
         context['assignees'] = self.object.assignees.select_related('user', 'display_badge')
         if self.request.profile != self.object.user:
-            context['autofill_replies'] = json.dumps(getattr(settings, 'TICKET_AUTOFILL_REPLIES', []))
+            context['autofill_replies'] = mark_safe(json.dumps(getattr(settings, 'TICKET_AUTOFILL_REPLIES', [])))
         return context
 
 
