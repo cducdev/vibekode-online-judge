@@ -175,7 +175,8 @@ textarea:focus {
     width: 100%;
     display: flex;
     justify-content: space-between;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
+    align-items: flex-end;
 
     .tab {
         .tab-icon {
@@ -204,9 +205,17 @@ textarea:focus {
 
     h2 {
         color: $color_primary75;
+        flex: 1 1 auto;
+        min-width: 0;
+        margin-right: 1em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     > ul {
+        flex: 0 1 auto;
+        min-width: 0;
         margin: 0;
         margin-bottom: -1px;
         padding: 0;

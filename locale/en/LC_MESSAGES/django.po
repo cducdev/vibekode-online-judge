@@ -38,6 +38,14 @@ msgstr ""
 msgid "Banned User"
 msgstr ""
 
+#: dmoj/settings.py:74
+msgid "Cheating"
+msgstr ""
+
+#: dmoj/settings.py:75
+msgid "Vibe King"
+msgstr ""
+
 #: dmoj/settings.py:74 templates/base.html:281 templates/comments/list.html:106
 #: templates/contest/contest-list-tabs.html:35
 #: templates/contest/ranking-table.html:52

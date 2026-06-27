@@ -15,6 +15,57 @@
     content: "🚫";
 }
 
+.cheating a, .cheating {
+    color: #8b3f1f !important;
+    font-weight: normal !important;
+    text-decoration: line-through !important;
+}
+
+.cheating a::before {
+    content: "💩";
+    display: inline-block;
+    margin-right: 0.15em;
+    text-decoration: none !important;
+}
+
+$vibeking-color: #be185d;
+$vibeking-gradient: linear-gradient(90deg, #be185d, #db2777, #2563eb, #1d4ed8);
+$vibeking-crown: #be185d;
+$vibeking-pink-glow: rgba(219, 39, 119, 0.28);
+$vibeking-blue-glow: rgba(37, 99, 235, 0.22);
+
+@if not $is_light_theme {
+    $vibeking-color: #f9a8d4;
+    $vibeking-gradient: linear-gradient(90deg, #f9a8d4, #f472b6, #93c5fd, #60a5fa);
+    $vibeking-crown: #f9a8d4;
+    $vibeking-pink-glow: rgba(244, 114, 182, 0.36);
+    $vibeking-blue-glow: rgba(96, 165, 250, 0.28);
+}
+
+.vibeking a, .vibeking {
+    color: $vibeking-color !important;
+    font-weight: 800 !important;
+    text-shadow:
+        0 0 0.2em $vibeking-pink-glow,
+        0 0 0.65em $vibeking-blue-glow;
+}
+
+.vibeking a {
+    background: $vibeking-gradient;
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.vibeking a::before {
+    content: "♚";
+    display: inline-block;
+    margin-right: 0.15em;
+    color: $vibeking-crown;
+    text-shadow: 0 0 0.35em $vibeking-pink-glow;
+    -webkit-text-fill-color: $vibeking-crown;
+}
+
 .staff a, .staff {
     color: #ff888a !important;
     font-weight: bold !important;

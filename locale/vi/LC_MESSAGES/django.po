@@ -37,6 +37,14 @@ msgstr "Nhân viên"
 msgid "Banned User"
 msgstr "Người dùng bị cấm"
 
+#: dmoj/settings.py:104
+msgid "Cheating"
+msgstr "Gian lận"
+
+#: dmoj/settings.py:105
+msgid "Vibe King"
+msgstr "Vibe King"
+
 #: dmoj/settings.py:104 templates/base.html:301
 #: templates/comments/list.html:102 templates/contest/contest-list-tabs.html:34
 #: templates/contest/ranking-table.html:28

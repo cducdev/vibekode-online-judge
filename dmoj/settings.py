@@ -101,6 +101,8 @@ VNOJ_DISPLAY_RANKS = (
     ('daor', _('Bedao Team')),
     ('staff', _('Staff')),
     ('banned', _('Banned User')),
+    ('cheating', _('Cheating')),
+    ('vibeking', _('Vibe King')),
     ('admin', _('Admin')),
     ('teacher', _('Teacher')),
 )
