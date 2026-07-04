@@ -208,9 +208,7 @@ textarea:focus {
         flex: 1 1 auto;
         min-width: 0;
         margin-right: 1em;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
+        overflow-wrap: anywhere;
     }
 
     > ul {
