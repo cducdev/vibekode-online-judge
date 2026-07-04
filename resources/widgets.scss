@@ -174,8 +174,8 @@ textarea:focus {
     margin: 0 0 8px;
     width: 100%;
     display: flex;
-    justify-content: space-between;
-    flex-wrap: nowrap;
+    justify-content: flex-start;
+    flex-wrap: wrap;
     align-items: flex-end;
 
     .tab {
@@ -205,14 +205,14 @@ textarea:focus {
 
     h2 {
         color: $color_primary75;
-        flex: 1 1 auto;
+        flex: 1 1 100%;
         min-width: 0;
-        margin-right: 1em;
-        overflow-wrap: anywhere;
+        margin: 0 0 0.4em;
+        overflow-wrap: break-word;
     }
 
     > ul {
-        flex: 0 1 auto;
+        flex: 1 1 100%;
         min-width: 0;
         margin: 0;
         margin-bottom: -1px;
