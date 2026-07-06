@@ -276,9 +276,8 @@ class ProblemDataCompiler(object):
                     'batched': [],
                     'is_pretest': case.is_pretest,
                     'scoring': case.batch_scoring,
+                    'score_type': case.batch_scoring,
                 }
-                if case.batch_scoring == 'min':
-                    batch['score_type'] = 'min'
                 if case.generator_args:
                     batch['generator_args'] = case.generator_args.splitlines()
                 if case.output_limit is not None:

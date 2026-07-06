@@ -280,7 +280,7 @@ class ProblemTestCase(CommonDataMixin, TestCase):
     def test_sum_batch_scoring_emits_case_points(self):
         batch = self._make_batch_scoring_init('batch_sum', 'sum')
 
-        self.assertNotIn('score_type', batch)
+        self.assertEqual(batch['score_type'], 'sum')
         self.assertEqual(batch['points'], 10)
         self.assertEqual([case['points'] for case in batch['batched']], [4, 6])
 
