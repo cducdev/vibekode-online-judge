@@ -98,10 +98,11 @@ class ProblemCaseForm(ModelForm):
         model = ProblemTestCase
         fields = ('order', 'type', 'input_file', 'output_file', 'points',
                   'is_pretest',  # 'output_limit', 'output_prefix',
-                  'checker', 'checker_args', 'generator_args')
+                  'batch_scoring', 'checker', 'checker_args', 'generator_args')
         widgets = {
             'generator_args': HiddenInput,
             'type': Select(attrs={'style': 'width: 100%'}),
+            'batch_scoring': Select(attrs={'style': 'width: 100%'}),
             'points': NumberInput(attrs={'style': 'width: 4em'}),
             # 'output_prefix': NumberInput(attrs={'style': 'width: 4.5em'}),
             # 'output_limit': NumberInput(attrs={'style': 'width: 6em'}),

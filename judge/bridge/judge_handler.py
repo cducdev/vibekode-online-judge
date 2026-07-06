@@ -13,7 +13,7 @@ from django.utils import timezone
 from judge import event_poster as event
 from judge.bridge.base_handler import ZlibPacketHandler, proxy_list
 from judge.caching import finished_submission
-from judge.models import Judge, Language, LanguageLimit, Problem, Profile, \
+from judge.models import Judge, Language, LanguageLimit, Problem, ProblemTestCase, Profile, \
     RuntimeVersion, Submission, SubmissionTestCase
 from judge.models.problem import ProblemTestcaseResultAccess
 from judge.utils.url import get_absolute_submission_file_url
@@ -413,7 +413,7 @@ class JudgeHandler(ZlibPacketHandler):
         total = 0
         status = 0
         status_codes = ['SC', 'AC', 'PAC', 'WA', 'MLE', 'TLE', 'IR', 'RTE', 'OLE']
-        batches = {}  # batch number: (points, total)
+        batches = {}  # batch number: list of (points, total)
 
         for case in SubmissionTestCase.objects.filter(submission=submission):
             time = max(time, case.time)
@@ -423,18 +423,28 @@ class JudgeHandler(ZlibPacketHandler):
                 points += case.points
                 total += case.total
             else:
-                if case.batch in batches:
-                    batches[case.batch][0] = min(batches[case.batch][0], case.points)
-                    batches[case.batch][1] = max(batches[case.batch][1], case.total)
-                else:
-                    batches[case.batch] = [case.points, case.total]
+                batches.setdefault(case.batch, []).append((case.points, case.total))
             i = status_codes.index(case.status)
             if i > status:
                 status = i
 
-        for i in batches:
-            points += batches[i][0]
-            total += batches[i][1]
+        min_batch_numbers = set(
+            i + 1
+            for i, scoring in enumerate(
+                ProblemTestCase.objects.filter(dataset=submission.problem, type='S')
+                .order_by('order')
+                .values_list('batch_scoring', flat=True),
+            )
+            if scoring == 'min'
+        )
+
+        for batch, case_pairs in batches.items():
+            if batch in min_batch_numbers:
+                points += min(point for point, _ in case_pairs)
+                total += max(total_points for _, total_points in case_pairs)
+            else:
+                points += sum(point for point, _ in case_pairs)
+                total += sum(total_points for _, total_points in case_pairs)
 
         points = round(points, 3)
         total = round(total, 3)

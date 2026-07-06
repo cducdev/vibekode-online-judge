@@ -16,7 +16,7 @@ from judge.models import (
 )
 from judge.utils.infinite_paginator import InfinitePaginationMixin
 from judge.utils.raw_sql import join_sql_subquery, use_straight_join
-from judge.views.submission import group_test_cases
+from judge.views.submission import get_batch_scorings, group_test_cases
 
 
 class BaseSimpleFilter:
@@ -667,7 +667,8 @@ class APISubmissionDetail(APILoginRequiredMixin, APIDetailView):
 
     def get_object_data(self, submission):
         cases = []
-        for batch in group_test_cases(submission.test_cases.all())[0]:
+        batch_scorings = get_batch_scorings(submission.problem)
+        for batch in group_test_cases(submission.test_cases.all(), batch_scorings)[0]:
             batch_cases = [
                 {
                     'type': 'case',

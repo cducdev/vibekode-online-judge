@@ -141,12 +141,27 @@ class ProblemData(models.Model):
 class ProblemTestCase(models.Model):
     dataset = models.ForeignKey('Problem', verbose_name=_('problem data set'), related_name='cases',
                                 on_delete=models.CASCADE)
+    BATCH_SCORING_CHOICES = (
+        ('sum', _('Sum')),
+        ('min', _('Min')),
+    )
+
     order = models.IntegerField(verbose_name=_('case position'))
     type = models.CharField(max_length=1, verbose_name=_('case type'),
                             choices=(('C', _('Normal case')),
                                      ('S', _('Batch start')),
                                      ('E', _('Batch end'))),
                             default='C')
+    batch_scoring = models.CharField(
+        max_length=20,
+        verbose_name=_('batch scoring'),
+        choices=BATCH_SCORING_CHOICES,
+        default='sum',
+        help_text=_(
+            'How Batch start rows aggregate child cases. '
+            'Sum uses per-case points; Min keeps the existing all-or-nothing batch behavior.',
+        ),
+    )
     input_file = models.CharField(max_length=100, verbose_name=_('input file name'), blank=True)
     output_file = models.CharField(max_length=100, verbose_name=_('output file name'), blank=True)
     generator_args = models.TextField(verbose_name=_('generator arguments'), blank=True)

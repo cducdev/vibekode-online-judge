@@ -121,7 +121,7 @@
 
                 <td>{% if case.status != 'SC' %}{{ case.memory|kbdetailformat }}]{% endif %}</td>
 
-                {% if not batch.id %}
+                {% if not batch.id or batch.scoring == 'sum' %}
                     <td>({{ case.points|floatformat(-3) }}/{{ case.total|floatformat(0) }})</td>
                 {% endif %}
             </tr>

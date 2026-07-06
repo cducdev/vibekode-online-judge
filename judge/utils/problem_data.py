@@ -227,8 +227,11 @@ class ProblemDataCompiler(object):
             if case.type == 'C':
                 data = {}
                 if batch:
-                    case.points = None
                     case.is_pretest = batch['is_pretest']
+                    if batch['scoring'] == 'min':
+                        case.points = None
+                    elif case.points is None:
+                        raise ProblemDataError(_('Points must be defined for batched case #%d.') % i)
                 else:
                     if case.points is None:
                         raise ProblemDataError(_('Points must be defined for non-batch case #%d.') % i)
@@ -248,7 +251,8 @@ class ProblemDataCompiler(object):
                     data['out'] = case.output_file
                 if case.points is not None:
                     data['points'] = case.points
-                    total_points += case.points
+                    if not batch:
+                        total_points += case.points
                 if case.generator_args:
                     data['generator_args'] = case.generator_args.splitlines()
                 if case.output_limit is not None:
@@ -271,7 +275,10 @@ class ProblemDataCompiler(object):
                     'points': case.points,
                     'batched': [],
                     'is_pretest': case.is_pretest,
+                    'scoring': case.batch_scoring,
                 }
+                if case.batch_scoring == 'min':
+                    batch['score_type'] = 'min'
                 if case.generator_args:
                     batch['generator_args'] = case.generator_args.splitlines()
                 if case.output_limit is not None:
@@ -327,6 +334,7 @@ class ProblemDataCompiler(object):
                 test_cases.append(case)
 
             del case['is_pretest']
+            case.pop('scoring', None)
 
         if pretest_test_cases:
             init['pretest_test_cases'] = pretest_test_cases

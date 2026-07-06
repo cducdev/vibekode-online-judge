@@ -167,11 +167,15 @@ def SubmissionSourceDiff(request):
     })
 
 
-def make_batch(batch, cases, statuses=None):
-    result = {'id': batch, 'cases': cases}
+def make_batch(batch, cases, statuses=None, batch_scoring='min'):
+    result = {'id': batch, 'cases': cases, 'scoring': batch_scoring}
     if batch:
-        result['points'] = min(map(attrgetter('points'), cases))
-        result['total'] = max(map(attrgetter('total'), cases))
+        if batch_scoring == 'min':
+            result['points'] = min(map(attrgetter('points'), cases))
+            result['total'] = max(map(attrgetter('total'), cases))
+        else:
+            result['points'] = sum(map(attrgetter('points'), cases))
+            result['total'] = sum(map(attrgetter('total'), cases))
         result['status'] = statuses[0].status if statuses else None
         if result['status']:
             result['long_status'] = Submission.USER_DISPLAY_CODES.get(result['status'], '')
@@ -207,7 +211,18 @@ def combine_statuses(status_cases, submission):
     return ret
 
 
-def group_test_cases(cases):
+def get_batch_scorings(problem):
+    return {
+        i + 1: scoring
+        for i, scoring in enumerate(
+            problem.cases.filter(type='S').order_by('order')
+            .values_list('batch_scoring', flat=True),
+        )
+    }
+
+
+def group_test_cases(cases, batch_scorings=None):
+    batch_scorings = batch_scorings or {}
     result = []
     status = []
     buf = []
@@ -219,14 +234,14 @@ def group_test_cases(cases):
         test_case_count += 1
         if case.batch != last and buf:
             statuses = get_statuses(last, buf)
-            result.append(make_batch(last, buf, statuses))
+            result.append(make_batch(last, buf, statuses, batch_scorings.get(last, 'min')))
             status.extend(statuses)
             buf = []
         buf.append(case)
         last = case.batch
     if buf:
         statuses = get_statuses(last, buf)
-        result.append(make_batch(last, buf, statuses))
+        result.append(make_batch(last, buf, statuses, batch_scorings.get(last, 'min')))
         status.extend(statuses)
     return result, status, test_case_count
 
@@ -241,7 +256,8 @@ class SubmissionStatus(SubmissionDetailBase):
         context = super(SubmissionStatus, self).get_context_data(**kwargs)
         submission = self.object
 
-        context['batches'], statuses, test_case_count = group_test_cases(submission.test_cases.all())
+        batch_scorings = get_batch_scorings(submission.problem)
+        context['batches'], statuses, test_case_count = group_test_cases(submission.test_cases.all(), batch_scorings)
 
         context['feedback_limit'] = min(3, test_case_count - 1)
         # In case the submission is in an on-going contest, we don't want to show any feedback.

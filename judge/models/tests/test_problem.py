@@ -232,6 +232,66 @@ class ProblemTestCase(CommonDataMixin, TestCase):
         with self.assertRaisesMessage(ProblemDataError, 'You must specify at least one input or output file.'):
             self._make_file_io_init('file_io_empty', {'io_method': 'file'})
 
+    def _make_batch_scoring_init(self, code, scoring):
+        problem = create_problem(code=code)
+        data = ProblemData.objects.create(problem=problem, checker='standard')
+        ProblemCase.objects.create(
+            dataset=problem,
+            order=1,
+            type='S',
+            points=10,
+            is_pretest=False,
+            batch_scoring=scoring,
+        )
+        ProblemCase.objects.create(
+            dataset=problem,
+            order=2,
+            type='C',
+            input_file='case1.in',
+            output_file='case1.out',
+            points=4,
+            is_pretest=False,
+            checker='standard',
+        )
+        ProblemCase.objects.create(
+            dataset=problem,
+            order=3,
+            type='C',
+            input_file='case2.in',
+            output_file='case2.out',
+            points=6,
+            is_pretest=False,
+            checker='standard',
+        )
+        ProblemCase.objects.create(
+            dataset=problem,
+            order=4,
+            type='E',
+            is_pretest=False,
+        )
+        compiler = ProblemDataCompiler(
+            problem,
+            data,
+            problem.cases.all().order_by('order'),
+            {'case1.in', 'case1.out', 'case2.in', 'case2.out'},
+        )
+        return compiler.make_init()['test_cases'][0]
+
+    def test_sum_batch_scoring_emits_case_points(self):
+        batch = self._make_batch_scoring_init('batch_sum', 'sum')
+
+        self.assertNotIn('score_type', batch)
+        self.assertEqual(batch['points'], 10)
+        self.assertEqual([case['points'] for case in batch['batched']], [4, 6])
+
+    def test_min_batch_scoring_preserves_all_or_nothing_shape(self):
+        batch = self._make_batch_scoring_init('batch_min', 'min')
+
+        self.assertEqual(batch['score_type'], 'min')
+        self.assertEqual(batch['points'], 10)
+        self.assertNotIn('points', batch['batched'][0])
+        self.assertNotIn('points', batch['batched'][1])
+
     def test_basic_problem_methods(self):
         self.assertTrue(self.basic_problem.is_editor(self.users['normal'].profile))
 

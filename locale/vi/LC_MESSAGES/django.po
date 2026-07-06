@@ -8841,6 +8841,30 @@ msgstr "CSV thông tin đăng nhập"
 msgid "Passwords are shown only for newly created users and are not stored in plaintext."
 msgstr "Mật khẩu chỉ hiển thị cho tài khoản mới tạo và không được lưu ở dạng văn bản thuần."
 
+#: judge/models/problem_data.py templates/problem/data.html
+msgid "batch scoring"
+msgstr "cách tính điểm batch"
+
+#: judge/models/problem_data.py
+msgid "Sum"
+msgstr "Cộng điểm"
+
+#: judge/models/problem_data.py
+msgid "Min"
+msgstr "Lấy nhỏ nhất"
+
+#: judge/models/problem_data.py
+msgid ""
+"How Batch start rows aggregate child cases. Sum uses per-case points; Min "
+"keeps the existing all-or-nothing batch behavior."
+msgstr ""
+"Cách dòng bắt đầu Batch tính điểm các test con. Cộng điểm dùng điểm từng "
+"test; Lấy nhỏ nhất giữ kiểu batch được ăn cả hoặc không được điểm."
+
+#: templates/problem/data.html
+msgid "Batch scoring"
+msgstr "Cách tính điểm batch"
+
 #~ msgid "Order in contest"
 #~ msgstr "Thứ tự của bài tập trong kỳ thi"
 

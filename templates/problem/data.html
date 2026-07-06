@@ -57,16 +57,26 @@
 
             function handle_table_reorder() {
                 var in_batch = false;
+                var batch_scoring = 'sum';
                 $table.find('tbody:first tr').each(function () {
+                    var $row = $(this);
                     switch ($(this).attr('data-type')) {
                         case 'C':
-                            $(this).find('input[id$=points], input[id$=pretest]').toggle(!in_batch);
+                            $row.find('input[id$=points]').toggle(!in_batch || batch_scoring === 'sum');
+                            $row.find('input[id$=pretest]').toggle(!in_batch);
+                            $row.find('select[id$=batch_scoring]').hide();
                             break;
                         case 'S':
+                            batch_scoring = $row.find('select[id$=batch_scoring]').val() || 'sum';
+                            $row.find('select[id$=batch_scoring]').show();
+                            $row.find('input[id$=points], input[id$=pretest]').show();
                             in_batch = true;
                             break;
                         case 'E':
+                            $row.find('select[id$=batch_scoring]').hide();
+                            $row.find('input[id$=points], input[id$=pretest]').hide();
                             in_batch = false;
+                            batch_scoring = 'sum';
                     }
                 });
             }
@@ -394,6 +404,7 @@
 
                 var $opts = $tr.find('input').slice(2, 4);
                 var $files = $tr.find('select').slice(1, 3);
+                var $batch_scoring = $tr.find('select[id$=batch_scoring]');
                 var $checker = $files.end().last();
                 $tr.find('select[id$=type]').change(function () {
                     var $this = $(this), val = $this.val(), disabled;
@@ -404,18 +415,22 @@
                             $opts.toggle(val == 'S');
                             $files.siblings('.select2').hide();
                             $checker.toggle(val == 'S');
+                            $batch_scoring.toggle(val == 'S');
                             break;
                         default:
                             $opts.toggle(val == 'C');
                             $files.siblings('.select2').toggle(val == 'C');
                             $checker.toggle(val == 'C');
+                            $batch_scoring.hide();
                             var $prevs = $tr.prevAll('tr[data-type=S], tr[data-type=E]');
                             disabled = $prevs.length && $prevs.get(0).getAttribute('data-type') == 'S';
                             $tr.find('input[id$=points], input[id$=pretest]').toggle(val == 'C' && !disabled);
                     }
                     $tr.attr('data-type', val).nextUntil('tr[data-type=S], tr[data-type=E], tr[data-type=""]')
                         .find('input[id$=points], input[id$=pretest]').toggle(!disabled);
+                    handle_table_reorder();
                 }).change();
+                $batch_scoring.change(handle_table_reorder);
 
                 var tooltip_classes = 'tooltipped tooltipped-s';
                 $tr.find('a.edit-generator-args').mouseover(function () {
@@ -888,6 +903,7 @@
                 <th>{{ _('Input file') }}</th>
                 <th>{{ _('Output file') }}</th>
                 <th>{{ _('Points') }}</th>
+                <th>{{ _('Batch scoring') }}</th>
                 {% if request.user.is_staff %}
                 <th>{{ _('Pretest?') }}</th>
                 {% endif %}
@@ -904,7 +920,7 @@
             {% for form in all_case_forms %}
                 {% if form.non_field_errors() %}
                     <tr>
-                        <td colspan="{{ 9 + cases_formset.can_delete }}">{{ form.non_field_errors() }}</td>
+                        <td colspan="{{ 10 + cases_formset.can_delete }}">{{ form.non_field_errors() }}</td>
                     </tr>
                 {% endif %}
                 {% if form.prefix and '__prefix__' in form.prefix %}
@@ -924,6 +940,7 @@
                         {{ form.output_file.errors }}{{ form.output_file }}
                     </td>
                     <td>{{ form.points.errors }}{{ form.points }}{% if not request.user.is_staff %}{{ form.is_pretest.as_hidden() }}{% endif %}</td>
+                    <td>{{ form.batch_scoring.errors }}{{ form.batch_scoring }}</td>
                     {% if request.user.is_staff %}
                         <td>{{ form.is_pretest.errors }}{{ form.is_pretest }}</td>
                     {% endif %}

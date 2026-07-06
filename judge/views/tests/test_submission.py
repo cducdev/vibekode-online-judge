@@ -1,3 +1,4 @@
+from types import SimpleNamespace
 from unittest.mock import PropertyMock
 
 from django.http import Http404
@@ -23,7 +24,48 @@ from judge.views.submission import (
     UserAllContestSubmissions,
     UserContestSubmissions,
     UserProblemSubmissions,
+    group_test_cases,
 )
+
+
+class SubmissionTestCaseGroupingTestCase(TestCase):
+    def test_group_test_cases_uses_sum_batch_scoring(self):
+        cases = [
+            SimpleNamespace(id=1, status='AC', batch=1, points=4, total=4),
+            SimpleNamespace(id=2, status='WA', batch=1, points=0, total=6),
+        ]
+
+        batches, statuses, test_case_count = group_test_cases(cases, {1: 'sum'})
+
+        self.assertEqual(test_case_count, 2)
+        self.assertEqual(batches[0]['points'], 4)
+        self.assertEqual(batches[0]['total'], 10)
+        self.assertEqual(batches[0]['scoring'], 'sum')
+        self.assertEqual([status.status for status in statuses], ['WA'])
+
+    def test_group_test_cases_uses_min_batch_scoring(self):
+        cases = [
+            SimpleNamespace(id=1, status='AC', batch=1, points=4, total=4),
+            SimpleNamespace(id=2, status='WA', batch=1, points=0, total=6),
+        ]
+
+        batches, _, _ = group_test_cases(cases, {1: 'min'})
+
+        self.assertEqual(batches[0]['points'], 0)
+        self.assertEqual(batches[0]['total'], 6)
+        self.assertEqual(batches[0]['scoring'], 'min')
+
+    def test_group_test_cases_defaults_to_legacy_min_batch_scoring(self):
+        cases = [
+            SimpleNamespace(id=1, status='AC', batch=1, points=4, total=4),
+            SimpleNamespace(id=2, status='WA', batch=1, points=0, total=6),
+        ]
+
+        batches, _, _ = group_test_cases(cases)
+
+        self.assertEqual(batches[0]['points'], 0)
+        self.assertEqual(batches[0]['total'], 6)
+        self.assertEqual(batches[0]['scoring'], 'min')
 
 
 class SubmissionsListBaseQuerysetTestCase(CommonDataMixin, TestCase):
