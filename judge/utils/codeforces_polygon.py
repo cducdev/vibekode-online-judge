@@ -812,21 +812,33 @@ class PolygonImporter:
                 })
 
     def parse_solutions(self):
-        solutions = self.root.find('.//solutions')
-        main_solution = solutions.find('solution[@tag="main"]')
-        assert main_solution is not None
+        if not self.interactive and not self.config.get('append_main_solution_to_tutorial', False):
+            return
 
-        if not self.interactive:
-            if not self.config.get('append_main_solution_to_tutorial', False):
+        solutions = self.root.find('.//solutions')
+        main_solution = solutions.find('solution[@tag="main"]') if solutions is not None else None
+        if main_solution is None:
+            if self.interactive:
+                self.log('Main solution not found. Skipping tutorial source append.')
                 return
-        else:
+            raise ImportPolygonError('main solution not found')
+
+        if self.interactive:
             self.log('Main solution found. Would you like to append it to the tutorial (y/n)? ', end='', flush=True)
             if input().lower() not in ['y', 'yes']:
                 return
 
         source = main_solution.find('source')
-        source_code = self.package.read(source.get('path')).decode('utf-8').strip()
-        source_lang = source.get('type')
+        if source is None or not source.get('path'):
+            raise ImportPolygonError('main solution source not found')
+
+        source_path = source.get('path')
+        try:
+            source_code = self.package.read(source_path).decode('utf-8').strip()
+        except KeyError:
+            raise ImportPolygonError(f'main solution source file not found: {source_path}')
+
+        source_lang = source.get('type') or ''
         markdown_lang = ''
         if source_lang.startswith('cpp'):
             markdown_lang = 'cpp'
