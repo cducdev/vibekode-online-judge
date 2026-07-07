@@ -23,7 +23,7 @@
 }
 
 // Bootstrap-y buttons
-.button, button, input[type=submit] {
+.button, button, input[type=submit], input[type=button] {
     color: white !important;
     text-decoration: none !important;
     cursor: pointer;
@@ -54,7 +54,7 @@
         padding: 6px 0;
     }
 
-    &.disabled {
+    &.disabled, &:disabled {
         background: linear-gradient(to bottom, darkgray 0, gray 100%) repeat-x !important;
         border-color: grey !important;
         cursor: not-allowed;
