@@ -317,13 +317,45 @@ class PolygonImporter:
         if testset is None:
             raise ImportPolygonError('testset tests not found')
 
-        if len(testset.find('tests').getchildren()) == 0:
+        tests = testset.find('tests')
+        if tests is None:
+            raise ImportPolygonError('testset tests not found')
+
+        if len(tests.getchildren()) == 0:
             raise ImportPolygonError('no testcases found')
 
-        input_path_pattern = testset.find('input-path-pattern').text
-        input_path = input_path_pattern % 1
-        if input_path not in self.package.namelist():
-            raise ImportPolygonError('not full package')
+        input_path_pattern = self._required_child_text(
+            testset,
+            'input-path-pattern',
+            'input path pattern not found',
+        )
+        answer_path_pattern = self._required_child_text(
+            testset,
+            'answer-path-pattern',
+            'answer path pattern not found',
+        )
+        input_path = self._format_package_path(input_path_pattern, 1, 'input path pattern')
+        answer_path = self._format_package_path(answer_path_pattern, 1, 'answer path pattern')
+        self._read_package_file(input_path, 'first test input file')
+        self._read_package_file(answer_path, 'first test output file')
+
+    def _required_child_text(self, element, child_name, error_message):
+        child = element.find(child_name)
+        if child is None or child.text is None:
+            raise ImportPolygonError(error_message)
+        return child.text
+
+    def _read_package_file(self, path, description):
+        try:
+            return self.package.read(path)
+        except KeyError:
+            raise ImportPolygonError(f'{description} not found in package: {path}')
+
+    def _format_package_path(self, pattern, index, description):
+        try:
+            return pattern % index
+        except (TypeError, ValueError):
+            raise ImportPolygonError(f'invalid {description}: {pattern}')
 
     def run(self):
         try:
@@ -368,7 +400,7 @@ class PolygonImporter:
                 raise ImportPolygonError('interactor must use C++')
 
             with open(self.meta['custom_grader'], 'wb') as f:
-                f.write(self.package.read(path))
+                f.write(self._read_package_file(path, 'interactor source file'))
 
             self.log('NOTE: checker is ignored when using interactive grader.')
             self.log('If you use custom checker, please merge it with the interactor.')
@@ -427,14 +459,18 @@ class PolygonImporter:
 
             self.meta['custom_checker'] = os.path.join(self.meta['tmp_dir'].name, 'checker.cpp')
             with open(self.meta['custom_checker'], 'wb') as f:
-                f.write(self.package.read(path))
+                f.write(self._read_package_file(path, 'checker source file'))
 
     def parse_tests(self):
         testset = self.root.find('.//testset[@name="tests"]')
         if testset is None:
             raise ImportPolygonError('testset tests not found')
 
-        if len(testset.find('tests').getchildren()) == 0:
+        tests = testset.find('tests')
+        if tests is None:
+            raise ImportPolygonError('testset tests not found')
+
+        if len(tests.getchildren()) == 0:
             raise ImportPolygonError('no testcases found')
 
         # Polygon specifies the time limit in ms and memory limit in bytes,
@@ -498,17 +534,31 @@ class PolygonImporter:
                 }
 
         with zipfile.ZipFile(self.meta['zipfile'], 'w') as tests_zip:
-            input_path_pattern = testset.find('input-path-pattern').text
-            answer_path_pattern = testset.find('answer-path-pattern').text
-            for i, test in enumerate(testset.find('tests').getchildren()):
+            input_path_pattern = self._required_child_text(
+                testset,
+                'input-path-pattern',
+                'input path pattern not found',
+            )
+            answer_path_pattern = self._required_child_text(
+                testset,
+                'answer-path-pattern',
+                'answer path pattern not found',
+            )
+            for i, test in enumerate(tests.getchildren()):
                 points = float(test.get('points', 0))
-                input_path = input_path_pattern % (i + 1)
-                answer_path = answer_path_pattern % (i + 1)
+                input_path = self._format_package_path(input_path_pattern, i + 1, 'input path pattern')
+                answer_path = self._format_package_path(answer_path_pattern, i + 1, 'answer path pattern')
                 input_file = f'{(i + 1):02d}.inp'
                 output_file = f'{(i + 1):02d}.out'
 
-                tests_zip.writestr(input_file, self.package.read(input_path))
-                tests_zip.writestr(output_file, self.package.read(answer_path))
+                tests_zip.writestr(input_file, self._read_package_file(
+                    input_path,
+                    f'test input file #{i + 1}',
+                ))
+                tests_zip.writestr(output_file, self._read_package_file(
+                    answer_path,
+                    f'test output file #{i + 1}',
+                ))
 
                 self.meta['cases_data'].append({
                     'index': i,
@@ -833,10 +883,7 @@ class PolygonImporter:
             raise ImportPolygonError('main solution source not found')
 
         source_path = source.get('path')
-        try:
-            source_code = self.package.read(source_path).decode('utf-8').strip()
-        except KeyError:
-            raise ImportPolygonError(f'main solution source file not found: {source_path}')
+        source_code = self._read_package_file(source_path, 'main solution source file').decode('utf-8').strip()
 
         source_lang = source.get('type') or ''
         markdown_lang = ''

@@ -1,4 +1,5 @@
 import io
+import tempfile
 import zipfile
 from unittest.mock import patch
 
@@ -7,9 +8,14 @@ from django.test import TestCase
 from judge.utils.codeforces_polygon import ImportPolygonError, PolygonImporter
 
 
-class PolygonImporterSolutionTestCase(TestCase):
-    def _package(self, solutions_xml='', solution_files=None):
+class PolygonImporterTestCase(TestCase):
+    def _package(self, solutions_xml='', solution_files=None, test_files=None, answer_path_pattern='tests/%02d.a'):
         solution_files = solution_files or {}
+        if test_files is None:
+            test_files = {
+                'tests/01': '1 2\n',
+                'tests/01.a': '3\n',
+            }
         package = io.BytesIO()
 
         with zipfile.ZipFile(package, 'w') as z:
@@ -21,7 +27,7 @@ class PolygonImporterSolutionTestCase(TestCase):
                             <time-limit>1000</time-limit>
                             <memory-limit>268435456</memory-limit>
                             <input-path-pattern>tests/%02d</input-path-pattern>
-                            <answer-path-pattern>tests/%02d.a</answer-path-pattern>
+                            <answer-path-pattern>{answer_path_pattern}</answer-path-pattern>
                             <tests>
                                 <test points="1"/>
                             </tests>
@@ -31,8 +37,9 @@ class PolygonImporterSolutionTestCase(TestCase):
                     {solutions_xml}
                 </problem>""",
             )
-            z.writestr('tests/01', '1 2\n')
-            z.writestr('tests/01.a', '3\n')
+
+            for path, content in test_files.items():
+                z.writestr(path, content)
 
             for path, source in solution_files.items():
                 z.writestr(path, source)
@@ -40,7 +47,14 @@ class PolygonImporterSolutionTestCase(TestCase):
         package.seek(0)
         return package
 
-    def _importer(self, solutions_xml='', solution_files=None, append_solution=True):
+    def _importer(
+            self,
+            solutions_xml='',
+            solution_files=None,
+            test_files=None,
+            answer_path_pattern='tests/%02d.a',
+            append_solution=True,
+    ):
         config = {
             'ignore_zero_point_batches': False,
             'ignore_zero_point_cases': False,
@@ -53,13 +67,18 @@ class PolygonImporterSolutionTestCase(TestCase):
         with patch('judge.utils.codeforces_polygon.shutil.which', return_value='/usr/bin/pandoc'), \
                 patch('judge.utils.codeforces_polygon.pandoc_get_version', return_value=(3, 0, 0)):
             importer = PolygonImporter(
-                package=self._package(solutions_xml, solution_files),
+                package=self._package(solutions_xml, solution_files, test_files, answer_path_pattern),
                 code='polygon_solution_test',
                 interactive=False,
                 config=config,
             )
         importer.meta['tutorial'] = ''
         return importer
+
+    def _prepare_tmp_dir(self, importer):
+        tmp_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp_dir.cleanup)
+        importer.meta['tmp_dir'] = tmp_dir
 
     def test_missing_solutions_node_raises_import_error(self):
         importer = self._importer()
@@ -97,7 +116,7 @@ class PolygonImporterSolutionTestCase(TestCase):
 
         with self.assertRaisesMessage(
                 ImportPolygonError,
-                'main solution source file not found: solutions/main.cpp',
+                'main solution source file not found in package: solutions/main.cpp',
         ):
             importer.parse_solutions()
 
@@ -117,3 +136,38 @@ class PolygonImporterSolutionTestCase(TestCase):
 
         self.assertIn('print("ok")', importer.meta['tutorial'])
         self.assertIn('```', importer.meta['tutorial'])
+
+    def test_missing_test_input_file_raises_import_error(self):
+        with self.assertRaisesMessage(
+                ImportPolygonError,
+                'first test input file not found in package: tests/01',
+        ):
+            self._importer(test_files={'tests/01.a': '3\n'})
+
+    def test_missing_test_output_file_raises_import_error(self):
+        with self.assertRaisesMessage(
+                ImportPolygonError,
+                'first test output file not found in package: tests/01.a',
+        ):
+            self._importer(test_files={'tests/01': '1 2\n'})
+
+    def test_missing_later_test_output_file_raises_import_error(self):
+        importer = self._importer(
+            test_files={
+                'tests/01': '1 2\n',
+                'tests/01.a': '3\n',
+                'tests/02': '3 4\n',
+            },
+        )
+        importer.root.find('.//tests').append(importer.root.makeelement('test', {'points': '1'}))
+        self._prepare_tmp_dir(importer)
+
+        with self.assertRaisesMessage(
+                ImportPolygonError,
+                'test output file #2 not found in package: tests/02.a',
+        ):
+            importer.parse_tests()
+
+    def test_invalid_answer_path_pattern_raises_import_error(self):
+        with self.assertRaisesMessage(ImportPolygonError, 'invalid answer path pattern: tests'):
+            self._importer(answer_path_pattern='tests')
