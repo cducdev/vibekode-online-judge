@@ -10,6 +10,8 @@ class abstractclassmethod(classmethod):
 
 
 class BaseContestFormat(metaclass=ABCMeta):
+    has_hidden_subtasks = False
+
     @abstractmethod
     def __init__(self, contest, config):
         self.config = config

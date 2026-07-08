@@ -104,6 +104,7 @@ class DefaultContestFormat(BaseContestFormat):
         return str(index + 1)
 
     def get_short_form_display(self):
+        yield _('Default mode ranks contestants by total score across problems.')
         yield _('The maximum score submission for each problem will be used.')
         yield _('Ties will be broken by the sum of the last submission time on problems with '
                 'a non-zero score.')

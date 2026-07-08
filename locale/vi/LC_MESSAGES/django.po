@@ -7967,6 +7967,10 @@ msgstr "Chúng tôi đang đợi một máy chấm phù hợp để chấm bài 
 msgid "Your submission is being processed..."
 msgstr "Bài nộp của bạn đang được xử lý..."
 
+#: templates/submission/status-testcases.html
+msgid "Your submission is being judged. Results will be available after all tests are judged."
+msgstr "Bài nộp đang được chấm, kết quả sẽ có sau khi tất cả các test được chấm xong."
+
 #: templates/submission/status-testcases.html:34
 msgid "Compilation Error"
 msgstr "Biên dịch gặp lỗi"
@@ -8864,6 +8868,86 @@ msgstr ""
 #: templates/problem/data.html
 msgid "Batch scoring"
 msgstr "Cách tính điểm batch"
+
+#: judge/contest_format/new_ioi.py
+msgid "New IOI"
+msgstr "New IOI"
+
+#: judge/contest_format/ultimate.py
+msgid "Ultimate"
+msgstr "Ultimate"
+
+#: judge/contest_format/default.py
+msgid "Default mode ranks contestants by total score across problems."
+msgstr "Chế độ Default xếp hạng thí sinh theo tổng điểm của các bài."
+
+#: judge/contest_format/atcoder.py
+msgid "AtCoder mode ranks by total score, then by the first best-scoring submission time with penalties."
+msgstr "Chế độ AtCoder xếp hạng theo tổng điểm, sau đó theo thời điểm đạt điểm tốt nhất đầu tiên kèm penalty."
+
+#: judge/contest_format/ecoo.py
+msgid "ECOO mode uses the last non-CE submission on each problem and may add configured bonuses."
+msgstr "Chế độ ECOO lấy lần nộp non-CE cuối cùng của mỗi bài và có thể cộng bonus theo cấu hình."
+
+#: judge/contest_format/legacy_ioi.py
+msgid "IOI (pre-2016) mode ranks by total score, using the best submission on each problem."
+msgstr "Chế độ IOI (pre-2016) xếp hạng theo tổng điểm, dùng lần nộp tốt nhất của mỗi bài."
+
+#: judge/contest_format/ioi.py
+msgid "IOI mode scores each batch independently and combines the best batch scores for each problem."
+msgstr "Chế độ IOI tính điểm từng batch độc lập và cộng các điểm batch tốt nhất của mỗi bài."
+
+#: judge/contest_format/icpc.py
+msgid "ICPC mode ranks by number of solved problems first, then penalty time."
+msgstr "Chế độ ICPC xếp hạng theo số bài giải được trước, sau đó theo thời gian penalty."
+
+#: judge/contest_format/vnoj.py
+msgid "VNOJ mode ranks by total score with ICPC-style penalty time."
+msgstr "Chế độ VNOJ xếp hạng theo tổng điểm với thời gian penalty kiểu ICPC."
+
+#: judge/contest_format/new_ioi.py
+msgid "New IOI mode scores each batch independently and can hide selected subtasks while the contest is running."
+msgstr "Chế độ New IOI tính điểm từng batch độc lập và có thể ẩn các subtask đã chọn khi contest đang diễn ra."
+
+#: judge/contest_format/ultimate.py
+msgid "Ultimate mode uses only the latest submission on each problem, even if it scores lower than earlier submissions."
+msgstr "Chế độ Ultimate chỉ tính lần nộp mới nhất của mỗi bài, kể cả khi điểm thấp hơn các lần nộp trước."
+
+#: judge/contest_format/new_ioi.py
+msgid "Hidden subtasks are excluded from public scores until the contest ends."
+msgstr "Các subtask ẩn không được tính vào điểm công khai cho đến khi contest kết thúc."
+
+#: judge/models/contest.py
+msgid "final contest format specific data"
+msgstr "dữ liệu định dạng contest cuối cùng"
+
+#: judge/models/contest.py
+msgid "hidden subtasks"
+msgstr "subtask ẩn"
+
+#: judge/models/contest.py
+msgid "Comma-separated subtask numbers to hide in New IOI contests."
+msgstr "Các số subtask cần ẩn trong contest New IOI, phân tách bằng dấu phẩy."
+
+#: judge/utils/subtasks.py
+msgid "Enter positive subtask numbers separated by commas."
+msgstr "Nhập các số subtask dương, phân tách bằng dấu phẩy."
+
+#: templates/contest/edit.html
+msgid "Hidden subtasks"
+msgstr "Subtask ẩn"
+
+#: templates/contest/edit.html
+msgid "Comma-separated, e.g. 2,3"
+msgstr "Phân tách bằng dấu phẩy, ví dụ 2,3"
+
+#: templates/submission/status-testcases.html
+msgid "Results for this subtask are hidden until the contest ends."
+msgstr "Kết quả của subtask này được ẩn cho đến khi contest kết thúc."
+
+#: templates/submission/status-testcases.html
+msgid "Visible score:"
+msgstr "Điểm hiển thị:"
 
 #~ msgid "Order in contest"
 #~ msgstr "Thứ tự của bài tập trong kỳ thi"

@@ -129,6 +129,7 @@ class LegacyIOIContestFormat(DefaultContestFormat):
         )
 
     def get_short_form_display(self):
+        yield _('IOI (pre-2016) mode ranks by total score, using the best submission on each problem.')
         yield _('The maximum score submission for each problem will be used.')
 
         if self.config['last_score_altering']:

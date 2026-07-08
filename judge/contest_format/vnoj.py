@@ -288,6 +288,7 @@ class VNOJContestFormat(DefaultContestFormat):
         )
 
     def get_short_form_display(self):
+        yield _('VNOJ mode ranks by total score with ICPC-style penalty time.')
         yield _('The maximum score submission for each problem will be used.')
 
         penalty = self.config['penalty']

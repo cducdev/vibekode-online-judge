@@ -16,7 +16,7 @@ from judge.models import (
 )
 from judge.utils.infinite_paginator import InfinitePaginationMixin
 from judge.utils.raw_sql import join_sql_subquery, use_straight_join
-from judge.views.submission import get_batch_scorings, group_test_cases
+from judge.views.submission import get_batch_scorings, get_hidden_subtasks, group_test_cases, visible_batch_score
 
 
 class BaseSimpleFilter:
@@ -668,7 +668,21 @@ class APISubmissionDetail(APILoginRequiredMixin, APIDetailView):
     def get_object_data(self, submission):
         cases = []
         batch_scorings = get_batch_scorings(submission.problem)
-        for batch in group_test_cases(submission.test_cases.all(), batch_scorings)[0]:
+        hidden_subtasks = get_hidden_subtasks(self.request, submission)
+        batches = group_test_cases(
+            submission.test_cases.all().order_by('case'),
+            batch_scorings,
+            hidden_subtasks=hidden_subtasks,
+        )[0]
+        for batch in batches:
+            if batch.get('hidden'):
+                cases.append({
+                    'type': 'batch',
+                    'batch_id': batch['id'],
+                    'hidden': True,
+                })
+                continue
+
             batch_cases = [
                 {
                     'type': 'case',
@@ -694,19 +708,26 @@ class APISubmissionDetail(APILoginRequiredMixin, APIDetailView):
                     'total': batch['total'],
                 })
 
+        case_points = submission.case_points
+        case_total = submission.case_total
+        hidden_result = hidden_subtasks and submission.is_graded and submission.status not in ('IE', 'CE', 'AB')
+        if hidden_result:
+            case_points, case_total = visible_batch_score(batches)
+
         return {
             'id': submission.id,
             'problem': submission.problem.code,
             'user': submission.user.user.username,
             'date': submission.date.isoformat(),
-            'time': submission.time,
-            'memory': submission.memory,
-            'points': submission.points,
+            'time': None if hidden_result else submission.time,
+            'memory': None if hidden_result else submission.memory,
+            'points': None if hidden_result else submission.points,
             'language': submission.language.key,
             'status': submission.status,
-            'result': submission.result,
-            'case_points': submission.case_points,
-            'case_total': submission.case_total,
+            'result': None if hidden_result else submission.result,
+            'hidden_result': bool(hidden_result),
+            'case_points': case_points,
+            'case_total': case_total,
             'cases': cases,
         }
 

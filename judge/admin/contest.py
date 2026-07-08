@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.core.exceptions import PermissionDenied
 from django.db import connection, transaction
 from django.db.models import Q, TextField
-from django.forms import ModelForm, ModelMultipleChoiceField
+from django.forms import ModelForm, ModelMultipleChoiceField, TextInput
 from django.http import Http404, HttpResponseRedirect
 from django.shortcuts import get_object_or_404
 from django.urls import path, reverse, reverse_lazy
@@ -16,6 +16,7 @@ from reversion.admin import VersionAdmin
 
 from judge.models import Contest, ContestAnnouncement, ContestProblem, ContestSubmission, Profile, Rating, Submission
 from judge.ratings import rate_contest
+from judge.utils.subtasks import clean_subtask_numbers
 from judge.utils.views import NoBatchDeleteMixin
 from judge.widgets import AdminAceWidget, AdminHeavySelect2MultipleWidget, AdminHeavySelect2Widget, \
     AdminMartorWidget, AdminSelect2MultipleWidget, AdminSelect2Widget
@@ -58,15 +59,21 @@ class ContestTagAdmin(admin.ModelAdmin):
 
 class ContestProblemInlineForm(ModelForm):
     class Meta:
-        widgets = {'problem': AdminHeavySelect2Widget(data_view='problem_select2')}
+        widgets = {
+            'problem': AdminHeavySelect2Widget(data_view='problem_select2'),
+            'hidden_subtasks': TextInput(attrs={'size': '6'}),
+        }
+
+    def clean_hidden_subtasks(self):
+        return clean_subtask_numbers(self.cleaned_data['hidden_subtasks'])
 
 
 class ContestProblemInline(SortableInlineAdminMixin, admin.TabularInline):
     model = ContestProblem
     verbose_name = _('Problem')
     verbose_name_plural = _('Problems')
-    fields = ('problem', 'points', 'partial', 'is_pretested', 'max_submissions', 'output_prefix_override', 'order',
-              'rejudge_column', 'rescore_column')
+    fields = ('problem', 'points', 'partial', 'is_pretested', 'max_submissions', 'hidden_subtasks',
+              'output_prefix_override', 'order', 'rejudge_column', 'rescore_column')
     readonly_fields = ('rejudge_column', 'rescore_column')
     form = ContestProblemInlineForm
 

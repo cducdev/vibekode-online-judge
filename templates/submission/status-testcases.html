@@ -6,13 +6,15 @@
 
 {% macro make_batch_status(batch, cnt) %}
     <b>{{ _('Batch #%(id)d', id=cnt) }}</b>
-    {% if not batch.not_graded %}
+    {% if batch.hidden %}
+        ({{ _('Hidden') }})
+    {% elif not batch.not_graded %}
         ({{ _('%(points)s/%(total)s points', points=batch.points|floatformat(0), total=batch.total|floatformat(0)) }})
     {% else %}
         <span class="fa fa-spinner fa-pulse"></span>
     {% endif %}
 
-    {% if not can_view_testcase_status and not batch.not_graded %}
+    {% if not can_view_testcase_status and not batch.not_graded and not batch.hidden %}
         {{ make_status(batch) }}
     {% endif %}
 {% endmacro %}
@@ -25,7 +27,9 @@
 {% set is_pretest = submission.is_pretested %}
 
 {% if submission.status != 'IE' %}
-    {% if submission.status == 'QU' %}
+    {% if has_hidden_subtasks and submission.status in ('QU', 'P', 'G') %}
+        <h4>{{ _('Your submission is being judged. Results will be available after all tests are judged.') }}</h4>
+    {% elif submission.status == 'QU' %}
         <h4>{{ _('We are waiting for a suitable judge to process your submission...') }}</h4>
     {% elif submission.status == 'P' %}
         <h4>{{ _('Your submission is being processed...') }}</h4>
@@ -45,7 +49,7 @@
         {% endif %}
         <br>
         {% if can_view_testcase_status or can_view_batch_status %}
-        {% if statuses or not submission.is_graded %}
+        {% if statuses or has_hidden_subtasks or not submission.is_graded %}
             {% for case in statuses %}
                 {% if case.status in ("AC", "PAC") %}
                     <span class="fa fa-check case-{{ case.result_class }}"></span>
@@ -73,12 +77,15 @@
         {% endif %}
         {% set test_case_id = counter() %}
         {% set test_case_counter = counter() %}
-        {% for batch in batches %}
+            {% for batch in batches %}
             {% if batch.id %}
                 {{ make_batch_status(batch, test_case_id()) }}
                 <br>
                 <div class="batch-cases">
             {% endif %}
+        {% if batch.hidden %}
+            <div class="alert alert-info">{{ _('Results for this subtask are hidden until the contest ends.') }}</div>
+        {% else %}
         {% if can_view_testcase_status %}
         <table class="submissions-status-table">{% for case in batch.cases %}
             {% set current_test_case_count = test_case_counter() %}
@@ -156,14 +163,15 @@
         {% endfor %}
         </table>
         {% endif %}
+        {% endif %}
 
         {% if batch.id %}</div>{% endif %}
             <br>
         {% endfor %}
-        {% if statuses and submission.is_graded %}
+        {% if (statuses or has_hidden_subtasks) and submission.is_graded %}
             <br>
             {% if submission.result != "AB" %}
-                {% if can_view_testcase_status %}
+                {% if can_view_testcase_status and not has_hidden_subtasks %}
                     <b>{{ _('Resources:') }}</b>
                     {% if submission.result == "TLE" %}
                         <span>---,</span>
@@ -173,22 +181,41 @@
                     {{ submission.memory|kbdetailformat }}
                     <br>
                 {% endif %}
-                {% if is_pretest %}
+                {% if has_hidden_subtasks %}
+                    <b>{{ _('Visible score:') }}</b>
+                    {% if visible_case_total %}
+                        {{ visible_case_points|floatformat(-3) }}/{{ visible_case_total|floatformat(0) }}
+                    {% else %}
+                        {{ _('Hidden') }}
+                    {% endif %}
+                {% elif is_pretest %}
                     <b>{{ _('Final pretest score:') }}</b>
+                    {{ submission.case_points|floatformat(-3) }}/{{ submission.case_total|floatformat(0) }}
+                    {% if request.in_contest and submission.contest_or_none %}
+                        {% with contest=submission.contest_or_none %}
+                            {% set points=contest.points|roundfloat(3) %}
+                            {% set total=contest.problem.points|floatformat(-1) %}
+                            ({{ _('%(points)s/%(total)s points', points=points, total=total) }})
+                        {% endwith %}
+                    {% else %}
+                        {% with points=submission.points|floatformat(3), total=submission.problem.points|floatformat(3) %}
+                            ({{ _('%(points)s/%(total)s points', points=points, total=total) }})
+                        {% endwith %}
+                    {% endif %}
                 {% else %}
                     <b>{{ _('Final score:') }}</b>
-                {% endif %}
-                {{ submission.case_points|floatformat(-3) }}/{{ submission.case_total|floatformat(0) }}
-                {% if request.in_contest and submission.contest_or_none %}
-                    {% with contest=submission.contest_or_none %}
-                        {% set points=contest.points|roundfloat(3) %}
-                        {% set total=contest.problem.points|floatformat(-1) %}
-                        ({{ _('%(points)s/%(total)s points', points=points, total=total) }})
-                    {% endwith %}
-                {% else %}
-                    {% with points=submission.points|floatformat(3), total=submission.problem.points|floatformat(3) %}
-                        ({{ _('%(points)s/%(total)s points', points=points, total=total) }})
-                    {% endwith %}
+                    {{ submission.case_points|floatformat(-3) }}/{{ submission.case_total|floatformat(0) }}
+                    {% if request.in_contest and submission.contest_or_none %}
+                        {% with contest=submission.contest_or_none %}
+                            {% set points=contest.points|roundfloat(3) %}
+                            {% set total=contest.problem.points|floatformat(-1) %}
+                            ({{ _('%(points)s/%(total)s points', points=points, total=total) }})
+                        {% endwith %}
+                    {% else %}
+                        {% with points=submission.points|floatformat(3), total=submission.problem.points|floatformat(3) %}
+                            ({{ _('%(points)s/%(total)s points', points=points, total=total) }})
+                        {% endwith %}
+                    {% endif %}
                 {% endif %}
                 {% if is_pretest and submission.result in ("AC", "PAC") %}
                     <br>

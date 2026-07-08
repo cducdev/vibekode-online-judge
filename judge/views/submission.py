@@ -31,6 +31,7 @@ from judge.utils.lazy import memo_lazy
 from judge.utils.problem_data import get_problem_testcases_data
 from judge.utils.problems import get_result_data, user_completed_ids, user_editable_ids, user_tester_ids
 from judge.utils.raw_sql import join_sql_subquery, use_straight_join
+from judge.utils.subtasks import calculate_batch_score, get_batch_scorings as get_problem_batch_scorings
 from judge.utils.views import DiggPaginatorMixin, TitleMixin, add_file_response, generic_message
 
 
@@ -167,16 +168,13 @@ def SubmissionSourceDiff(request):
     })
 
 
-def make_batch(batch, cases, statuses=None, batch_scoring='min'):
-    result = {'id': batch, 'cases': cases, 'scoring': batch_scoring}
+def make_batch(batch, cases, statuses=None, batch_scoring='min', include_cases=True, hidden=False):
+    result = {'id': batch, 'scoring': batch_scoring, 'hidden': hidden}
+    if include_cases:
+        result['cases'] = [] if hidden else cases
+    result['points'], result['total'] = calculate_batch_score(cases, batch_scoring if batch else 'sum')
     if batch:
-        if batch_scoring == 'min':
-            result['points'] = min(map(attrgetter('points'), cases))
-            result['total'] = max(map(attrgetter('total'), cases))
-        else:
-            result['points'] = sum(map(attrgetter('points'), cases))
-            result['total'] = sum(map(attrgetter('total'), cases))
-        result['status'] = statuses[0].status if statuses else None
+        result['status'] = None if hidden else (statuses[0].status if statuses else None)
         if result['status']:
             result['long_status'] = Submission.USER_DISPLAY_CODES.get(result['status'], '')
     return result
@@ -212,17 +210,12 @@ def combine_statuses(status_cases, submission):
 
 
 def get_batch_scorings(problem):
-    return {
-        i + 1: scoring
-        for i, scoring in enumerate(
-            problem.cases.filter(type='S').order_by('order')
-            .values_list('batch_scoring', flat=True),
-        )
-    }
+    return get_problem_batch_scorings(problem)
 
 
-def group_test_cases(cases, batch_scorings=None):
+def group_test_cases(cases, batch_scorings=None, hidden_subtasks=None, include_cases=True):
     batch_scorings = batch_scorings or {}
+    hidden_subtasks = hidden_subtasks or set()
     result = []
     status = []
     buf = []
@@ -233,17 +226,60 @@ def group_test_cases(cases, batch_scorings=None):
         # `cases` is not a list.
         test_case_count += 1
         if case.batch != last and buf:
-            statuses = get_statuses(last, buf)
-            result.append(make_batch(last, buf, statuses, batch_scorings.get(last, 'min')))
+            hidden = last in hidden_subtasks
+            statuses = [] if hidden else get_statuses(last, buf)
+            result.append(make_batch(
+                last, buf, statuses, batch_scorings.get(last, 'min'), include_cases, hidden,
+            ))
             status.extend(statuses)
             buf = []
         buf.append(case)
         last = case.batch
     if buf:
-        statuses = get_statuses(last, buf)
-        result.append(make_batch(last, buf, statuses, batch_scorings.get(last, 'min')))
+        hidden = last in hidden_subtasks
+        statuses = [] if hidden else get_statuses(last, buf)
+        result.append(make_batch(last, buf, statuses, batch_scorings.get(last, 'min'), include_cases, hidden))
         status.extend(statuses)
     return result, status, test_case_count
+
+
+def get_hidden_subtasks(request, submission):
+    contest = submission.contest_object
+    if not contest or contest.ended or contest.is_editable_by(request.user):
+        return set()
+    if not contest.format.has_hidden_subtasks:
+        return set()
+
+    try:
+        contest_problem = submission.contest.problem
+    except ObjectDoesNotExist:
+        return set()
+
+    return contest.format.get_hidden_subtasks().get(str(contest_problem.id), set())
+
+
+def visible_batch_score(batches):
+    visible_batches = [batch for batch in batches if not batch.get('hidden')]
+    return (
+        sum(batch.get('points', 0) for batch in visible_batches),
+        sum(batch.get('total', 0) for batch in visible_batches),
+    )
+
+
+def mask_submission_for_hidden_subtasks(request, submission):
+    hidden_subtasks = get_hidden_subtasks(request, submission)
+    if not hidden_subtasks or not submission.is_graded or submission.status in ('IE', 'CE', 'AB'):
+        return
+
+    batch_scorings = get_batch_scorings(submission.problem)
+    batches, _, _ = group_test_cases(
+        submission.test_cases.all().order_by('case'),
+        batch_scorings,
+        hidden_subtasks=hidden_subtasks,
+        include_cases=False,
+    )
+    submission.case_points, submission.case_total = visible_batch_score(batches)
+    submission.hidden_subtasks_masked = True
 
 
 class SubmissionStatus(SubmissionDetailBase):
@@ -256,8 +292,16 @@ class SubmissionStatus(SubmissionDetailBase):
         context = super(SubmissionStatus, self).get_context_data(**kwargs)
         submission = self.object
 
+        hidden_subtasks = get_hidden_subtasks(self.request, submission)
         batch_scorings = get_batch_scorings(submission.problem)
-        context['batches'], statuses, test_case_count = group_test_cases(submission.test_cases.all(), batch_scorings)
+        context['batches'], statuses, test_case_count = group_test_cases(
+            submission.test_cases.all().order_by('case'),
+            batch_scorings,
+            hidden_subtasks=hidden_subtasks,
+        )
+        context['hidden_subtasks'] = hidden_subtasks
+        context['has_hidden_subtasks'] = bool(hidden_subtasks)
+        context['visible_case_points'], context['visible_case_total'] = visible_batch_score(context['batches'])
 
         context['feedback_limit'] = min(3, test_case_count - 1)
         # In case the submission is in an on-going contest, we don't want to show any feedback.
@@ -378,6 +422,8 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
         return result
 
     def _get_result_data(self, queryset=None):
+        if self.should_mask_hidden_subtasks():
+            return {'categories': [], 'total': 0}
         if self.is_in_low_power_mode():
             return {'categories': [], 'total': 0}
         if queryset is None:
@@ -464,10 +510,16 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
         return self.request.user.is_superuser or self.request.user.is_staff
 
     def get_searchable_status_codes(self):
+        if self.should_mask_hidden_subtasks():
+            return []
         hidden_codes = ['SC']
         if not self.could_filter_by_status():
             hidden_codes += ['IE', 'QU', 'P', 'G', 'D']
         return [(key, value) for key, value in Submission.SEARCHABLE_STATUS if key not in hidden_codes]
+
+    def should_mask_hidden_subtasks(self):
+        return self.is_contest_scoped and self.contest.format.has_hidden_subtasks and \
+            not self.contest.ended and not self.contest.is_editable_by(self.request.user)
 
     def get_context_data(self, **kwargs):
         context = super(SubmissionsListBase, self).get_context_data(**kwargs)
@@ -499,6 +551,11 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
         context['all_submissions_link'] = self.get_all_submissions_page()
         context['is_in_low_power_mode'] = self.is_in_low_power_mode()
         context['tab'] = self.tab
+        context['has_hidden_subtasks_contest'] = self.should_mask_hidden_subtasks()
+
+        for submission in context['submissions']:
+            mask_submission_for_hidden_subtasks(self.request, submission)
+
         return context
 
     def is_in_low_power_mode(self):
@@ -538,6 +595,9 @@ class SubmissionsListBase(DiggPaginatorMixin, TitleMixin, ListView):
                 self.selected_organization = int(self.selected_organization)
             except ValueError:
                 raise Http404()
+
+        if self.should_mask_hidden_subtasks():
+            self.selected_statuses = set()
 
         if 'results' in request.GET:
             return JsonResponse(self.get_result_data())
@@ -731,6 +791,7 @@ def single_submission(request):
     submission = get_object_or_404(submission_related(Submission.objects.all()), id=int(request.GET['id']))
     if not submission.problem.is_accessible_by(request.user):
         raise Http404()
+    mask_submission_for_hidden_subtasks(request, submission)
 
     return render(request, 'submission/row.html', {
         'submission': submission,

@@ -358,6 +358,8 @@ class ContestDetail(ContestMixin, TitleMixin, CommentedDetailView):
         authenticated = self.request.user.is_authenticated
         context['completed_problem_ids'] = user_completed_ids(self.request.profile) if authenticated else []
         context['attempted_problem_ids'] = user_attempted_ids(self.request.profile) if authenticated else []
+        context['hide_contest_progress'] = self.object.format.has_hidden_subtasks and \
+            not self.object.ended and not self.object.is_editable_by(self.request.user)
 
         context['can_download_data'] = bool(settings.DMOJ_CONTEST_DATA_DOWNLOAD)
 
@@ -389,6 +391,8 @@ class ContestAllProblems(ContestMixin, TitleMixin, DetailView):
         authenticated = self.request.user.is_authenticated
         context['completed_problem_ids'] = user_completed_ids(self.request.profile) if authenticated else []
         context['attempted_problem_ids'] = user_attempted_ids(self.request.profile) if authenticated else []
+        context['hide_contest_progress'] = self.object.format.has_hidden_subtasks and \
+            not self.object.ended and not self.object.is_editable_by(self.request.user)
 
         return context
 
@@ -813,6 +817,10 @@ ContestRankingProfile = namedtuple(
 BestSolutionData = namedtuple('BestSolutionData', 'code points time state is_pretested')
 
 
+def contest_uses_final_score(contest):
+    return contest.format.has_hidden_subtasks and contest.ended
+
+
 def make_contest_ranking_profile(contest, participation, contest_problems, first_solves, frozen=False):
     def display_user_problem(contest_problem):
         # When the contest format is changed, `format_data` might be invalid.
@@ -828,8 +836,12 @@ def make_contest_ranking_profile(contest, participation, contest_problems, first
         user=user.user,
         css_class=user.css_class,
         username=user.username,
-        points=participation.score if not frozen else participation.frozen_score,
-        cumtime=participation.cumtime if not frozen else participation.frozen_cumtime,
+        points=participation.score_final if contest_uses_final_score(contest) and not frozen else (
+            participation.score if not frozen else participation.frozen_score
+        ),
+        cumtime=participation.cumtime_final if contest_uses_final_score(contest) and not frozen else (
+            participation.cumtime if not frozen else participation.frozen_cumtime
+        ),
         tiebreaker=participation.tiebreaker if not frozen else participation.frozen_tiebreaker,
         organization=user.organization,
         participation_rating=participation.rating.rating if hasattr(participation, 'rating') else None,
@@ -850,6 +862,13 @@ def base_contest_ranking_list(contest, problems, queryset, frozen=False):
 
 
 def base_contest_ranking_queryset(contest):
+    if contest_uses_final_score(contest):
+        return contest.users.filter(virtual__gt=ContestParticipation.SPECTATE) \
+            .prefetch_related(Prefetch('user__organizations',
+                                       queryset=Organization.objects.filter(is_unlisted=False))) \
+            .annotate(submission_count=Count('submission')) \
+            .order_by('is_disqualified', '-score_final', 'cumtime_final', 'tiebreaker', '-submission_count')
+
     return contest.users.filter(virtual__gt=ContestParticipation.SPECTATE) \
         .prefetch_related(Prefetch('user__organizations',
                                    queryset=Organization.objects.filter(is_unlisted=False))) \
@@ -949,6 +968,7 @@ class ContestRanking(ContestRankingBase):
     @property
     def cache_key(self):
         return f'contest_ranking_cache_{self.object.key}_{self.show_virtual}_{self.is_frozen}_' \
+               f'{contest_uses_final_score(self.object)}_' \
                f'{self.request.LANGUAGE_CODE}'
 
     @property

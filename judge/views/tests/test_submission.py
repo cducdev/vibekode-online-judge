@@ -67,6 +67,21 @@ class SubmissionTestCaseGroupingTestCase(TestCase):
         self.assertEqual(batches[0]['total'], 6)
         self.assertEqual(batches[0]['scoring'], 'min')
 
+    def test_group_test_cases_hides_hidden_subtasks(self):
+        cases = [
+            SimpleNamespace(id=1, status='AC', batch=1, points=4, total=4),
+            SimpleNamespace(id=2, status='WA', batch=1, points=0, total=6),
+        ]
+
+        batches, statuses, test_case_count = group_test_cases(cases, {1: 'sum'}, hidden_subtasks={1})
+
+        self.assertEqual(test_case_count, 2)
+        self.assertTrue(batches[0]['hidden'])
+        self.assertEqual(batches[0]['cases'], [])
+        self.assertEqual(batches[0]['points'], 4)
+        self.assertEqual(batches[0]['total'], 10)
+        self.assertEqual(statuses, [])
+
 
 class SubmissionsListBaseQuerysetTestCase(CommonDataMixin, TestCase):
     """Test cases for SubmissionsListBase.get_queryset method.

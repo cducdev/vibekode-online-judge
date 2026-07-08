@@ -1,9 +1,12 @@
 {% set can_view, can_edit = submission_layout(submission, profile_id, request.user, completed_problem_ids, editable_problem_ids, tester_problem_ids) %}
-<div class="sub-result {{ submission.result_class }}">
+{% set hidden_subtasks_masked = submission.hidden_subtasks_masked is defined and submission.hidden_subtasks_masked %}
+<div class="sub-result{% if not hidden_subtasks_masked %} {{ submission.result_class }}{% endif %}">
     <div class="score">
         {%- if submission.is_graded -%}
             {%- if submission.status in ('IE', 'CE', 'AB') -%}
                 ---
+            {%- elif hidden_subtasks_masked and not submission.case_total -%}
+                {{ _('Hidden') }}
             {%- else -%}
                 {{ submission.case_points|floatformat(-3) }} / {{ submission.case_total|floatformat(0) }}
             {%- endif -%}
@@ -13,7 +16,11 @@
     </div>
 
     <div class="state">
-        <span title="{{ submission.long_status }}" class="status">{{ submission.short_status }}</span> |
+        {% if hidden_subtasks_masked %}
+            <span class="status">{{ _('Hidden') }}</span>
+        {% else %}
+            <span title="{{ submission.long_status }}" class="status">{{ submission.short_status }}</span>
+        {% endif %} |
         <span class="language">{{ submission.language.short_display_name }}</span>
     </div>
 </div>
@@ -38,7 +45,7 @@
         </div>
     </div>
 
-    {% if submission.status == 'G' and can_view_testcase_status %}
+    {% if submission.status == 'G' and can_view_testcase_status and not hidden_subtasks_masked %}
         <div class="sub-testcase">
             {%- if submission.current_testcase > 0 -%}
                 {{ _('Case #%(case)s', case=submission.current_testcase) }}
@@ -93,7 +100,7 @@
 
 
 <div class="sub-usage">
-    {% if submission.status in ('QU', 'P', 'G', 'CE', 'IE', 'AB') or not can_view_testcase_status %}
+    {% if submission.status in ('QU', 'P', 'G', 'CE', 'IE', 'AB') or not can_view_testcase_status or hidden_subtasks_masked %}
         <div class="time">---</div>
         <div class="memory">---</div>
     {% else %}

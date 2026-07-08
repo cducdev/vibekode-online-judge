@@ -241,6 +241,7 @@ class ICPCContestFormat(DefaultContestFormat):
         return ret[::-1]
 
     def get_short_form_display(self):
+        yield _('ICPC mode ranks by number of solved problems first, then penalty time.')
         yield _('The maximum score submission for each problem will be used.')
 
         penalty = self.config['penalty']

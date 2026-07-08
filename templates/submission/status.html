@@ -1,6 +1,6 @@
 {% extends "submission/info-base.html" %}
 {% block js_media %}
-    {% if not submission.is_graded and EVENT_LAST_MSG %}
+    {% if not submission.is_graded and EVENT_LAST_MSG and not has_hidden_subtasks %}
         <script type="text/javascript">
             $(function () {
                 var blocked = false, request = false;

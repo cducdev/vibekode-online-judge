@@ -128,6 +128,7 @@ class ECOOContestFormat(DefaultContestFormat):
         )
 
     def get_short_form_display(self):
+        yield _('ECOO mode uses the last non-CE submission on each problem and may add configured bonuses.')
         yield _('The score on your **last** non-CE submission for each problem will be used.')
 
         first_ac_bonus = self.config['first_ac_bonus']

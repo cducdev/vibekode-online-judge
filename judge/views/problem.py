@@ -422,6 +422,8 @@ class ProblemDetail(ProblemMixin, SolvedProblemMixin, ProblemSubmitMixin, Commen
         context['has_pdf_render'] = PDF_RENDERING_ENABLED
         context['completed_problem_ids'] = self.get_completed_problems()
         context['attempted_problems'] = self.get_attempted_problems()
+        context['hide_contest_progress'] = self.in_contest and self.contest.format.has_hidden_subtasks and \
+            not self.contest.ended and not self.contest.is_editable_by(user)
 
         can_edit = self.object.is_editable_by(user)
         context['can_edit_problem'] = can_edit

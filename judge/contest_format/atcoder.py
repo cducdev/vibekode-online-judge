@@ -115,6 +115,7 @@ class AtCoderContestFormat(DefaultContestFormat):
             return mark_safe('<td></td>')
 
     def get_short_form_display(self):
+        yield _('AtCoder mode ranks by total score, then by the first best-scoring submission time with penalties.')
         yield _('The maximum score submission for each problem will be used.')
 
         penalty = self.config['penalty']

@@ -611,6 +611,8 @@ class ContestParticipation(models.Model):
     real_start = models.DateTimeField(verbose_name=_('start time'), default=timezone.now, db_column='start')
     score = models.FloatField(verbose_name=_('score'), default=0, db_index=True)
     cumtime = models.PositiveIntegerField(verbose_name=_('cumulative time'), default=0)
+    score_final = models.FloatField(verbose_name=_('final score'), default=0, db_index=True)
+    cumtime_final = models.PositiveIntegerField(verbose_name=_('final cumulative time'), default=0)
     frozen_score = models.FloatField(verbose_name=_('frozen score'), default=0, db_index=True,
                                      help_text=_('Frozen score in the scoreboard.'))
     frozen_cumtime = models.PositiveIntegerField(verbose_name=_('frozen cumulative time'), default=0,
@@ -622,6 +624,7 @@ class ContestParticipation(models.Model):
     virtual = models.IntegerField(verbose_name=_('virtual participation id'), default=LIVE,
                                   help_text=_('0 means non-virtual, otherwise the n-th virtual participation.'))
     format_data = JSONField(verbose_name=_('contest format specific data'), null=True, blank=True)
+    format_data_final = JSONField(verbose_name=_('final contest format specific data'), null=True, blank=True)
 
     def recompute_results(self):
         with transaction.atomic():
@@ -745,6 +748,8 @@ class ContestProblem(models.Model):
     order = models.PositiveIntegerField(db_index=True, verbose_name=_('order'))
     output_prefix_override = models.IntegerField(verbose_name=_('output prefix length override'),
                                                  default=0, null=True, blank=True)
+    hidden_subtasks = models.CharField(verbose_name=_('hidden subtasks'), max_length=255, blank=True, default='',
+                                       help_text=_('Comma-separated subtask numbers to hide in New IOI contests.'))
     max_submissions = models.IntegerField(help_text=_('Maximum number of submissions for this problem, '
                                                       'or leave blank for no limit.'),
                                           default=None, null=True, blank=True,

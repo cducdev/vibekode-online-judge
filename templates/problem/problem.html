@@ -109,7 +109,7 @@
 
 {% block title_row %}
     <div class="problem-title">
-        {% if request.user.is_authenticated %}
+        {% if request.user.is_authenticated and not hide_contest_progress %}
             {% if problem.id in completed_problem_ids %}
                 <a href="{{ url('user_submissions', problem.code, request.user.username) }}">
                     {% if problem.is_public or request.in_contest %}

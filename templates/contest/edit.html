@@ -132,6 +132,7 @@
                     });
                 }
             });
+
         })
     </script>
     {{ form.media.js }}
@@ -197,7 +198,7 @@
 {% macro form_as_row(form) -%}
     {% if form.non_field_errors() %}
     <tr>
-        <td colspan="5">{{ form.non_field_errors() }}</td>
+        <td colspan="6">{{ form.non_field_errors() }}</td>
     </tr>
     {% endif %}
     <tr>
@@ -205,6 +206,7 @@
         <td>{{ form.id }} {{ form.problem.errors }}{{ form.problem }}</td>
         <td class="points-column">{{ form.points.errors }}{{ form.points }}</td>
         <td>{{ form.max_submissions.errors }}{{ form.max_submissions }}</td>
+        <td>{{ form.hidden_subtasks.errors }}{{ form.hidden_subtasks }}</td>
         <td>
         {% if contest_problem_formset.can_delete and form.instance.pk %}
             {{ form.DELETE }}
@@ -245,6 +247,11 @@
                             <br>
                             {{_('or leave blank for no limit.') }}
                         </span>
+                    </th>
+                    <th>
+                        {{ _('Hidden subtasks') }}
+                        <br>
+                        <span class="helptext">{{ _('Comma-separated, e.g. 2,3') }}</span>
                     </th>
                     <th> {{ _('Delete') }} </th>
                 </tr>

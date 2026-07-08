@@ -23,6 +23,7 @@ from django.utils.translation import gettext_lazy as _, ngettext_lazy
 from judge.models import BlogPost, Contest, ContestAnnouncement, ContestParticipation, ContestProblem, Language, \
     LanguageLimit, Organization, Problem, Profile, Solution, Submission, Tag, WebAuthnCredential
 from judge.utils.subscription import newsletter_id
+from judge.utils.subtasks import clean_subtask_numbers
 from judge.widgets import AceWidget, HeavySelect2MultipleWidget, HeavySelect2Widget, MartorWidget, \
     Select2MultipleWidget, Select2Widget
 
@@ -693,16 +694,20 @@ class ProposeContestProblemForm(ModelForm):
         verbose_name = _('Problem')
         verbose_name_plural = 'Problems'
         fields = (
-            'problem', 'points', 'order', 'max_submissions',
+            'problem', 'points', 'order', 'max_submissions', 'hidden_subtasks',
         )
 
         widgets = {
             'problem': HeavySelect2Widget(data_view='problem_select2', attrs={'style': 'width: 100%'}),
+            'hidden_subtasks': forms.TextInput(attrs={'style': 'width: 6em'}),
         }
 
         error_messages = {
             'problem': {'invalid_choice': _('No such problem.')},
         }
+
+    def clean_hidden_subtasks(self):
+        return clean_subtask_numbers(self.cleaned_data['hidden_subtasks'])
 
 
 class ProposeContestProblemFormSet(

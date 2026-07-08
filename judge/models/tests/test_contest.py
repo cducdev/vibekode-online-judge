@@ -2,9 +2,11 @@ from django.core.exceptions import ValidationError
 from django.test import SimpleTestCase, TestCase
 from django.utils import timezone
 
-from judge.models import Contest, ContestParticipation, ContestTag
+from judge.models import Contest, ContestParticipation, ContestSubmission, ContestTag, Language, ProblemTestCase, \
+    Submission, SubmissionTestCase
 from judge.models.contest import MinValueOrNoneValidator
-from judge.models.tests.util import CommonDataMixin, create_contest, create_contest_participation, create_user
+from judge.models.tests.util import CommonDataMixin, create_contest, create_contest_participation, \
+    create_contest_problem, create_problem, create_user
 
 
 class ContestTestCase(CommonDataMixin, TestCase):
@@ -832,6 +834,212 @@ class ContestTestCase(CommonDataMixin, TestCase):
         self.assertFalse(participation.spectate)
         self.assertEqual(participation.start, participation.real_start)
         self.assertIsInstance(participation.end_time, timezone.datetime)
+
+
+class NewIOIContestFormatTestCase(CommonDataMixin, TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        now = timezone.now()
+        cls.contest = create_contest(
+            key='new_ioi_hidden',
+            format_name='new_ioi',
+            format_config={},
+            start_time=now - timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=1),
+            scoreboard_visibility=Contest.SCOREBOARD_VISIBLE,
+        )
+        cls.problem = create_problem(code='new_ioi_problem', points=100)
+        cls.contest_problem = create_contest_problem(
+            contest=cls.contest,
+            problem=cls.problem,
+            points=100,
+            hidden_subtasks='2',
+        )
+        cls.participation = create_contest_participation(contest=cls.contest, user='normal')
+
+        ProblemTestCase.objects.create(
+            dataset=cls.problem, order=1, type='S', points=50, is_pretest=False, batch_scoring='sum',
+        )
+        ProblemTestCase.objects.create(dataset=cls.problem, order=2, type='C', points=50, is_pretest=False)
+        ProblemTestCase.objects.create(dataset=cls.problem, order=3, type='E', is_pretest=False)
+        ProblemTestCase.objects.create(
+            dataset=cls.problem, order=4, type='S', points=50, is_pretest=False, batch_scoring='sum',
+        )
+        ProblemTestCase.objects.create(dataset=cls.problem, order=5, type='C', points=50, is_pretest=False)
+        ProblemTestCase.objects.create(dataset=cls.problem, order=6, type='E', is_pretest=False)
+
+        cls.submission = Submission.objects.create(
+            user=cls.users['normal'].profile,
+            problem=cls.problem,
+            language=Language.get_python3(),
+            result='PAC',
+            status='D',
+            points=90,
+            case_points=90,
+            case_total=100,
+            date=now,
+        )
+        SubmissionTestCase.objects.create(
+            submission=cls.submission, case=1, status='PAC', points=40, total=50, batch=1, time=0.01, memory=1024,
+        )
+        SubmissionTestCase.objects.create(
+            submission=cls.submission, case=2, status='AC', points=50, total=50, batch=2, time=0.01, memory=1024,
+        )
+        ContestSubmission.objects.create(
+            submission=cls.submission,
+            problem=cls.contest_problem,
+            participation=cls.participation,
+            points=90,
+        )
+
+    def test_hidden_subtasks_are_excluded_from_public_score(self):
+        self.participation.recompute_results()
+
+        self.assertEqual(self.participation.score, 40)
+        self.assertEqual(self.participation.score_final, 90)
+        self.assertEqual(self.participation.format_data[str(self.contest_problem.id)]['points'], 40)
+        self.assertEqual(self.participation.format_data_final[str(self.contest_problem.id)]['points'], 90)
+
+
+class UltimateContestFormatTestCase(CommonDataMixin, TestCase):
+    @staticmethod
+    def _create_submission_cases(submission, case_results):
+        for case, (batch, points, total, status) in enumerate(case_results, 1):
+            SubmissionTestCase.objects.create(
+                submission=submission,
+                case=case,
+                status=status,
+                points=points,
+                total=total,
+                batch=batch,
+                time=0.01,
+                memory=1024,
+            )
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        now = timezone.now()
+        cls.contest = create_contest(
+            key='ultimate_last_submission',
+            format_name='ultimate',
+            format_config={},
+            start_time=now - timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=1),
+            scoreboard_visibility=Contest.SCOREBOARD_VISIBLE,
+        )
+        cls.problem = create_problem(code='ultimate_problem', points=100)
+        cls.contest_problem = create_contest_problem(
+            contest=cls.contest,
+            problem=cls.problem,
+            points=100,
+        )
+        cls.participation = create_contest_participation(contest=cls.contest, user='normal')
+
+        cls.older_better_submission = Submission.objects.create(
+            user=cls.users['normal'].profile,
+            problem=cls.problem,
+            language=Language.get_python3(),
+            result='AC',
+            status='D',
+            points=100,
+            case_points=4,
+            case_total=4,
+            date=now,
+        )
+        cls._create_submission_cases(cls.older_better_submission, [
+            (None, 1, 1, 'AC'),
+            (None, 1, 1, 'AC'),
+            (None, 1, 1, 'AC'),
+            (None, 1, 1, 'AC'),
+        ])
+        ContestSubmission.objects.create(
+            submission=cls.older_better_submission,
+            problem=cls.contest_problem,
+            participation=cls.participation,
+            points=100,
+        )
+
+        cls.newer_worse_submission = Submission.objects.create(
+            user=cls.users['normal'].profile,
+            problem=cls.problem,
+            language=Language.get_python3(),
+            result='PAC',
+            status='D',
+            points=25,
+            case_points=1,
+            case_total=4,
+            date=now + timezone.timedelta(minutes=5),
+        )
+        cls._create_submission_cases(cls.newer_worse_submission, [
+            (None, 1, 1, 'AC'),
+            (None, 0, 1, 'WA'),
+            (None, 0, 1, 'WA'),
+            (None, 0, 1, 'WA'),
+        ])
+        ContestSubmission.objects.create(
+            submission=cls.newer_worse_submission,
+            problem=cls.contest_problem,
+            participation=cls.participation,
+            points=25,
+        )
+
+        cls.hidden_contest = create_contest(
+            key='ultimate_hidden',
+            format_name='ultimate',
+            format_config={},
+            start_time=now - timezone.timedelta(days=1),
+            end_time=now + timezone.timedelta(days=1),
+            scoreboard_visibility=Contest.SCOREBOARD_VISIBLE,
+        )
+        cls.hidden_problem = create_problem(code='ultimate_hidden_problem', points=100)
+        cls.hidden_contest_problem = create_contest_problem(
+            contest=cls.hidden_contest,
+            problem=cls.hidden_problem,
+            points=100,
+            hidden_subtasks='2',
+        )
+        cls.hidden_participation = create_contest_participation(contest=cls.hidden_contest, user='normal')
+        cls.hidden_submission = Submission.objects.create(
+            user=cls.users['normal'].profile,
+            problem=cls.hidden_problem,
+            language=Language.get_python3(),
+            result='PAC',
+            status='D',
+            points=70,
+            case_points=7,
+            case_total=10,
+            date=now,
+        )
+        cls._create_submission_cases(cls.hidden_submission, [
+            (1, 5, 5, 'AC'),
+            (2, 2, 5, 'PAC'),
+        ])
+        ContestSubmission.objects.create(
+            submission=cls.hidden_submission,
+            problem=cls.hidden_contest_problem,
+            participation=cls.hidden_participation,
+            points=70,
+        )
+
+    def test_latest_submission_is_used_even_if_score_is_lower(self):
+        self.participation.recompute_results()
+
+        self.assertFalse(self.contest.format.has_hidden_subtasks)
+        self.assertEqual(self.participation.score, 25)
+        self.assertEqual(self.participation.format_data[str(self.contest_problem.id)]['points'], 25)
+
+    def test_hidden_subtasks_are_excluded_from_public_score(self):
+        self.hidden_participation.recompute_results()
+
+        self.assertTrue(self.hidden_contest.format.has_hidden_subtasks)
+        self.assertEqual(self.hidden_participation.score, 50)
+        self.assertEqual(self.hidden_participation.score_final, 70)
+        self.assertEqual(self.hidden_participation.format_data[str(self.hidden_contest_problem.id)]['points'], 50)
+        self.assertEqual(
+            self.hidden_participation.format_data_final[str(self.hidden_contest_problem.id)]['points'], 70,
+        )
 
 
 class ContestTagTestCase(TestCase):

@@ -93,6 +93,7 @@ class IOIContestFormat(LegacyIOIContestFormat):
         participation.save()
 
     def get_short_form_display(self):
+        yield _('IOI mode scores each batch independently and combines the best batch scores for each problem.')
         yield _('The maximum score for each problem batch will be used.')
 
         if self.config['cumtime']:
