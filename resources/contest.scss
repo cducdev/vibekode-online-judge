@@ -327,3 +327,402 @@ form.contest-join-pseudotab {
         width: 260px !important;
     }
 }
+
+.contest-live-submissions-controls {
+    float: right;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-left: 0.75rem;
+
+    .contest-live-mode-toggle {
+        min-width: 7.5rem;
+    }
+
+    .contest-live-open-page {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        border: 1px solid $color_primary25;
+        border-radius: 4px;
+        color: $color_link50;
+        background: $color_primary0;
+
+        &:hover {
+            color: $color_link100;
+            background: $color_primary10;
+        }
+    }
+}
+
+.contest-live-ranking-layout {
+    min-width: 0;
+
+    [data-live-submissions-panel][hidden] {
+        display: none;
+    }
+
+    &[data-live-mode='side'] {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(22rem, 24rem);
+        gap: 1rem;
+        align-items: start;
+
+        [data-live-submissions-panel] {
+            position: sticky;
+            top: 4rem;
+        }
+    }
+
+    .contest-live-ranking-table {
+        min-width: 0;
+        overflow-x: auto;
+    }
+
+    &[data-live-mode='float'] [data-live-submissions-panel] {
+        position: fixed;
+        right: 1rem;
+        bottom: 1rem;
+        z-index: 1000;
+        width: min(26rem, calc(100vw - 2rem));
+        max-height: calc(100vh - 5rem);
+        overflow-y: auto;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+    }
+}
+
+.contest-live-submissions-page {
+    width: min(34rem, 100%);
+    margin: 0 auto;
+}
+
+@keyframes contest-live-submission-enter {
+    0% {
+        min-height: 0;
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        opacity: 0;
+        transform: translateY(-1rem);
+        border-bottom-color: transparent;
+        background: $color_primary25;
+    }
+
+    55% {
+        opacity: 1;
+        transform: translateY(0);
+        background: $color_primary10;
+    }
+
+    100% {
+        min-height: var(--contest-live-row-min-height);
+        max-height: var(--contest-live-row-animation-height);
+        padding-top: var(--contest-live-row-padding-y);
+        padding-bottom: var(--contest-live-row-padding-y);
+        opacity: 1;
+        transform: translateY(0);
+        border-bottom-color: $color_primary25;
+        background: $color_primary0;
+    }
+}
+
+@keyframes contest-live-result-pop {
+    0%, 30% {
+        transform: scale(0.92);
+    }
+
+    60% {
+        transform: scale(1.04);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.contest-live-submissions {
+    box-sizing: border-box;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid $color_primary25;
+    border-radius: 6px;
+    background: $color_primary0;
+    color: $color_primary100;
+
+    .contest-live-submissions-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        min-height: 2.75rem;
+        padding: 0.55rem 0.75rem;
+        box-sizing: border-box;
+        color: #fff;
+        background: #2563eb;
+
+        h3 {
+            min-width: 0;
+            margin: 0;
+            overflow: hidden;
+            font-size: 0.95rem;
+            line-height: 1.2;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+    }
+
+    .contest-live-submissions-state {
+        flex: 0 0 auto;
+        color: #fff;
+        font-size: 0.72rem;
+        white-space: nowrap;
+    }
+
+    .contest-live-submissions-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .contest-live-submission {
+        --contest-live-row-min-height: 3.25rem;
+        --contest-live-row-animation-height: 8rem;
+        --contest-live-row-padding-y: 0.35rem;
+
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 2.25rem 6.5rem 4.75rem;
+        align-items: center;
+        gap: 0.5rem;
+        min-height: var(--contest-live-row-min-height);
+        padding-block: var(--contest-live-row-padding-y);
+        padding-inline: 0.65rem;
+        overflow: hidden;
+        box-sizing: border-box;
+        border-bottom: 1px solid $color_primary25;
+        background: $color_primary0;
+
+        &:last-child {
+            border-bottom: 0;
+        }
+
+        &.is-new {
+            animation: contest-live-submission-enter 800ms ease-out both;
+
+            .contest-live-submission-result {
+                animation: contest-live-result-pop 800ms ease-out both;
+            }
+        }
+    }
+
+    .contest-live-submission-identity {
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .contest-live-submission-user {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .contest-live-submission-meta {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        min-width: 0;
+        overflow: hidden;
+        color: $color_primary50;
+        font-size: 0.72rem;
+        white-space: nowrap;
+    }
+
+    .contest-live-submission-organization {
+        flex: 0 1 auto;
+        min-width: 0;
+        overflow: hidden;
+        color: $color_link50;
+        text-overflow: ellipsis;
+    }
+
+    .contest-live-submission-user-badge {
+        width: auto;
+        height: 1em;
+        margin-left: 0.25em;
+        vertical-align: -0.1em;
+    }
+
+    .contest-live-submission-problem,
+    .contest-live-submission-result {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        height: 1.8rem;
+        overflow: hidden;
+        border-radius: 4px;
+        font-weight: 700;
+        line-height: 1;
+        white-space: nowrap;
+    }
+
+    .contest-live-submission-problem {
+        color: #fff;
+        background: #2563eb;
+    }
+
+    .contest-live-submission-result {
+        gap: 0.3rem;
+        min-width: 6.5rem;
+        padding: 0 0.35rem;
+        font-variant-numeric: tabular-nums;
+
+        &.masked {
+            border: 1px solid $color_primary25;
+            color: $color_primary75;
+            background: $color_primary10;
+        }
+    }
+
+    .contest-live-submission-time {
+        overflow: hidden;
+        color: $color_primary50;
+        font-size: 0.75rem;
+        font-variant-numeric: tabular-nums;
+        text-align: right;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
+
+    .contest-live-submissions-empty {
+        margin: 0;
+        padding: 1.5rem 0.75rem;
+        color: $color_primary50;
+        text-align: center;
+    }
+}
+
+body.contest-live-submissions-embed {
+    min-height: 0;
+    padding: 0;
+    background: transparent !important;
+
+    .contest-live-submissions {
+        min-height: 100%;
+        box-shadow: none;
+    }
+
+    .contest-live-submissions-header {
+        align-items: flex-start;
+        flex-direction: column;
+        min-height: 0;
+        gap: 0.35rem;
+        padding: 1rem 1.25rem;
+
+        h3 {
+            overflow: visible;
+            font-size: 2rem;
+            white-space: normal;
+            text-overflow: clip;
+        }
+    }
+
+    .contest-live-submissions-state {
+        font-size: 1.1rem;
+    }
+
+    .contest-live-submission {
+        --contest-live-row-min-height: 10rem;
+        --contest-live-row-animation-height: 20rem;
+        --contest-live-row-padding-y: 1rem;
+
+        grid-template-areas:
+            'identity identity'
+            'problem result';
+        grid-template-columns: 3rem minmax(0, 1fr);
+        gap: 0.75rem 0.5rem;
+        padding-inline: 1.25rem;
+    }
+
+    .contest-live-submission-identity {
+        grid-area: identity;
+        overflow: visible;
+    }
+
+    .contest-live-submission-user {
+        overflow: visible;
+        font-size: 2.5rem;
+        line-height: 1.15;
+        white-space: normal;
+        overflow-wrap: break-word;
+        text-overflow: clip;
+    }
+
+    .contest-live-submission-meta {
+        flex-wrap: wrap;
+        gap: 0.4rem 0.55rem;
+        margin-top: 0.35rem;
+        overflow: visible;
+        font-size: 1.5rem;
+        line-height: 1.25;
+        white-space: normal;
+    }
+
+    .contest-live-submission-problem,
+    .contest-live-submission-result {
+        height: 3.5rem;
+        font-size: 1.5rem;
+    }
+
+    .contest-live-submission-problem {
+        grid-area: problem;
+    }
+
+    .contest-live-submission-result {
+        grid-area: result;
+        gap: 0.5rem;
+        min-width: 0;
+        width: 100%;
+        padding: 0 0.65rem;
+        font-size: 1.75rem;
+    }
+
+    .contest-live-submission-time {
+        display: none;
+    }
+
+    .contest-live-submissions-empty {
+        padding: 2.5rem 1.25rem;
+        font-size: 1.5rem;
+    }
+}
+
+@media (max-width: 64em) {
+    .contest-live-ranking-layout[data-live-mode='side'] {
+        display: block;
+
+        [data-live-submissions-panel] {
+            position: static;
+            width: min(34rem, 100%);
+            margin: 1rem 0 0 auto;
+        }
+    }
+}
+
+@media (max-width: 34em) {
+    .contest-live-submissions-controls {
+        float: none;
+        margin: 0.5rem 0 0;
+    }
+
+    .contest-live-submissions .contest-live-submission {
+        grid-template-columns: minmax(0, 1fr) 2.1rem 6.5rem;
+
+        .contest-live-submission-time {
+            display: none;
+        }
+    }
+}

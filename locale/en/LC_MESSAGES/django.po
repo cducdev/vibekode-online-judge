@@ -7294,3 +7294,56 @@ msgstr ""
 
 msgid "If your account was created with Google sign-in, you do not need to reset a password. Please continue by signing in with Google."
 msgstr "If your account was created with Google sign-in, you do not need to reset a password. Please continue by signing in with Google."
+
+#: judge/views/contests.py templates/contest/live-submissions-widget.html
+msgid "You are not allowed to view live submissions."
+msgstr ""
+
+#: judge/views/contests.py
+#, python-format
+msgid "%s Live Submissions"
+msgstr ""
+
+#: templates/contest/live-submissions-widget.html
+msgid "Loading submissions..."
+msgstr ""
+
+#: templates/contest/live-submissions-widget.html
+msgid "No recent submissions."
+msgstr ""
+
+#: templates/contest/live-submissions-widget.html
+msgid "Judging in progress..."
+msgstr ""
+
+#: templates/contest/live-submissions-widget.html
+msgid "Scoreboard frozen"
+msgstr ""
+
+#: templates/contest/live-submissions-widget.html
+msgid "Reconnecting..."
+msgstr ""
+
+#: templates/contest/live-submissions-widget.html
+msgid "Recent submissions"
+msgstr ""
+
+#: templates/contest/contest-tabs.html
+msgid "Live submissions"
+msgstr ""
+
+#: templates/contest/ranking.html
+msgid "Live: off"
+msgstr ""
+
+#: templates/contest/ranking.html
+msgid "Live: floating"
+msgstr ""
+
+#: templates/contest/ranking.html
+msgid "Live: side"
+msgstr ""
+
+#: templates/contest/ranking.html
+msgid "Open live submissions"
+msgstr ""

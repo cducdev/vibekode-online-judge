@@ -1,0 +1,22 @@
+<section id="{{ live_submission_widget_id|default('contest-live-submissions') }}"
+         class="contest-live-submissions"
+         data-live-submissions
+         data-feed-url="{{ live_submission_feed_url }}"
+         data-event-channel="{{ live_submission_channel }}"
+         data-loading-label="{{ _('Loading submissions...') }}"
+         data-empty-label="{{ _('No recent submissions.') }}"
+         data-live-label="{{ _('Live') }}"
+         data-judging-label="{{ _('Judging in progress...') }}"
+         data-frozen-label="{{ _('Scoreboard frozen') }}"
+         data-error-label="{{ _('Reconnecting...') }}">
+    <header class="contest-live-submissions-header">
+        <h3><i class="fa fa-bolt" aria-hidden="true"></i> {{ _('Recent submissions') }}</h3>
+        <span class="contest-live-submissions-state" data-live-submissions-state aria-live="polite">
+            {{ _('Loading submissions...') }}
+        </span>
+    </header>
+    <ol class="contest-live-submissions-list" data-live-submissions-list></ol>
+    <p class="contest-live-submissions-empty" data-live-submissions-empty hidden>
+        {{ _('No recent submissions.') }}
+    </p>
+</section>

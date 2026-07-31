@@ -8949,6 +8949,59 @@ msgstr "Kết quả của subtask này được ẩn cho đến khi contest kế
 msgid "Visible score:"
 msgstr "Điểm hiển thị:"
 
+#: judge/views/contests.py templates/contest/live-submissions-widget.html
+msgid "You are not allowed to view live submissions."
+msgstr "Bạn không có quyền xem bài nộp trực tiếp."
+
+#: judge/views/contests.py
+#, python-format
+msgid "%s Live Submissions"
+msgstr "Bài nộp trực tiếp - %s"
+
+#: templates/contest/live-submissions-widget.html
+msgid "Loading submissions..."
+msgstr "Đang tải bài nộp..."
+
+#: templates/contest/live-submissions-widget.html
+msgid "No recent submissions."
+msgstr "Chưa có bài nộp gần đây."
+
+#: templates/contest/live-submissions-widget.html
+msgid "Judging in progress..."
+msgstr "Đang chấm bài..."
+
+#: templates/contest/live-submissions-widget.html
+msgid "Scoreboard frozen"
+msgstr "Bảng xếp hạng đã đóng băng"
+
+#: templates/contest/live-submissions-widget.html
+msgid "Reconnecting..."
+msgstr "Đang kết nối lại..."
+
+#: templates/contest/live-submissions-widget.html
+msgid "Recent submissions"
+msgstr "Bài nộp gần đây"
+
+#: templates/contest/contest-tabs.html
+msgid "Live submissions"
+msgstr "Bài nộp trực tiếp"
+
+#: templates/contest/ranking.html
+msgid "Live: off"
+msgstr "Trực tiếp: tắt"
+
+#: templates/contest/ranking.html
+msgid "Live: floating"
+msgstr "Trực tiếp: nổi"
+
+#: templates/contest/ranking.html
+msgid "Live: side"
+msgstr "Trực tiếp: bên cạnh"
+
+#: templates/contest/ranking.html
+msgid "Open live submissions"
+msgstr "Mở bài nộp trực tiếp"
+
 #~ msgid "Order in contest"
 #~ msgstr "Thứ tự của bài tập trong kỳ thi"
 

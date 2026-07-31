@@ -1,3 +1,6 @@
+from itertools import groupby
+from operator import attrgetter
+
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -71,3 +74,19 @@ def calculate_batch_score(cases, batch_scoring='min'):
         sum(case.points or 0.0 for case in cases),
         sum(case.total or 0.0 for case in cases),
     )
+
+
+def calculate_visible_problem_score(cases, batch_scorings, hidden_subtasks, problem_points):
+    visible_points = 0.0
+    total_points = 0.0
+
+    for batch, batch_cases in groupby(cases, key=attrgetter('batch')):
+        scoring = batch_scorings.get(batch, 'sum') if batch else 'sum'
+        points, total = calculate_batch_score(batch_cases, scoring)
+        total_points += total
+        if batch not in hidden_subtasks:
+            visible_points += points
+
+    if not total_points:
+        return 0.0
+    return round(visible_points / total_points * problem_points, 3)

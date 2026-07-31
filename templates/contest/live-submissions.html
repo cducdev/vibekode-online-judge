@@ -1,0 +1,19 @@
+{% extends "common-content.html" %}
+
+{% block title_ruler %}{% endblock %}
+
+{% block title_row %}
+    {% include "contest/contest-tabs.html" %}
+{% endblock %}
+
+{% block js_media %}
+    <script src="{{ static('contest-live-submissions.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+    <div class="contest-live-submissions-page">
+        {% with live_submission_widget_id='contest-live-submissions-page' %}
+            {% include "contest/live-submissions-widget.html" %}
+        {% endwith %}
+    </div>
+{% endblock %}

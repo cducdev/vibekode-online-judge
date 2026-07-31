@@ -464,6 +464,9 @@
         {% endif %}
     </script>
     {% include "contest/media-js.html" %}
+    {% if tab == 'ranking' and can_view_live_submissions %}
+        <script src="{{ static('contest-live-submissions.js') }}"></script>
+    {% endif %}
 {% endblock %}
 
 {% block before_users_table %}
@@ -496,6 +499,31 @@
         {% if tab == 'ranking' %}
             <input id="show-virtual-participations-checkbox" type="checkbox" style="vertical-align: bottom">
             <label for="show-virtual-participations-checkbox" style="vertical-align: bottom">{{ _('Show virtual participations') }}</label>
+            {% if can_view_live_submissions %}
+                <span class="contest-live-submissions-controls">
+                    <button type="button"
+                            class="inline-button contest-live-mode-toggle"
+                            data-live-mode-toggle
+                            data-target="contest-live-ranking-layout"
+                            data-storage-key="contest-live-mode-{{ contest.key }}"
+                            data-off-label="{{ _('Live: off') }}"
+                            data-float-label="{{ _('Live: floating') }}"
+                            data-side-label="{{ _('Live: side') }}"
+                            aria-controls="contest-live-ranking-panel"
+                            aria-expanded="false">
+                        <i class="fa fa-bolt" aria-hidden="true"></i>
+                        <span data-live-mode-label>{{ _('Live: off') }}</span>
+                    </button>
+                    <a class="contest-live-open-page"
+                       href="{{ live_submission_page_url }}"
+                       target="_blank"
+                       rel="noopener"
+                       title="{{ _('Open live submissions') }}"
+                       aria-label="{{ _('Open live submissions') }}">
+                        <i class="fa fa-external-link" aria-hidden="true"></i>
+                    </a>
+                </span>
+            {% endif %}
             {% if not is_ICPC_format %}
             <a href="#" onclick="download_table_as_csv()" style="float: right;">{{ _('Download as CSV') }}</a>
             {% endif %}
@@ -504,7 +532,20 @@
 {% endblock %}
 
 {% block users_table %}
-    {{ rendered_ranking_table }}
+    {% if tab == 'ranking' and can_view_live_submissions %}
+        <div id="contest-live-ranking-layout" class="contest-live-ranking-layout" data-live-mode="off">
+            <div class="contest-live-ranking-table">
+                {{ rendered_ranking_table }}
+            </div>
+            <aside id="contest-live-ranking-panel" data-live-submissions-panel hidden>
+                {% with live_submission_widget_id='contest-live-submissions-ranking' %}
+                    {% include "contest/live-submissions-widget.html" %}
+                {% endwith %}
+            </aside>
+        </div>
+    {% else %}
+        {{ rendered_ranking_table }}
+    {% endif %}
 {% endblock %}
 
 {% block body %}

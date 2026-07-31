@@ -5,6 +5,7 @@ from collections import defaultdict, namedtuple
 from datetime import date, datetime, time, timedelta
 from functools import partial
 from operator import attrgetter, itemgetter
+from urllib.parse import urlencode
 
 from django import forms
 from django.conf import settings
@@ -16,12 +17,13 @@ from django.db import IntegrityError
 from django.db.models import BooleanField, Case, Count, F, FloatField, IntegerField, Max, Min, Q, Sum, Value, When
 from django.db.models.expressions import CombinedExpression
 from django.db.models.query import Prefetch
-from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseForbidden, HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import date as date_filter, floatformat
 from django.template.loader import get_template
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.crypto import constant_time_compare
 from django.utils.functional import cached_property
 from django.utils.html import escape, format_html
 from django.utils.safestring import mark_safe
@@ -40,7 +42,7 @@ from judge.contest_format import ICPCContestFormat
 from judge.forms import ContestAnnouncementForm, ContestCloneForm, ContestDownloadDataForm, ContestForm, \
     ProposeContestProblemFormSet
 from judge.models import Contest, ContestAnnouncement, ContestMoss, ContestParticipation, ContestProblem, ContestTag, \
-    Language, Organization, Problem, ProblemClarification, Profile, Solution, Submission
+    Language, Organization, Problem, ProblemClarification, Profile, Solution, Submission, SubmissionTestCase
 from judge.tasks import on_new_contest, prepare_contest_data, rescore_problem, run_moss
 from judge.utils.celery import redirect_to_task_status, task_status_by_id, task_status_url_by_id
 from judge.utils.cms import parse_csv_ranking
@@ -49,13 +51,46 @@ from judge.utils.opengraph import generate_opengraph
 from judge.utils.problems import _get_result_data, user_attempted_ids, user_completed_ids
 from judge.utils.ranker import ranker
 from judge.utils.stats import get_bar_chart, get_pie_chart, get_stacked_bar_chart
+from judge.utils.subtasks import calculate_visible_problem_score, get_batch_scorings
 from judge.utils.views import SingleObjectFormView, TitleMixin, \
     add_file_response, generic_message, paginate_query_context
 
 __all__ = ['ContestList', 'ContestDetail', 'ContestRanking', 'ContestJoin', 'ContestLeave', 'ContestCalendar',
            'ContestClone', 'ContestStats', 'ContestMossView', 'ContestMossDelete',
            'ContestParticipationList', 'ContestParticipationDisqualify', 'get_contest_ranking_list',
-           'base_contest_ranking_list', 'ContestProblemMakePublic']
+           'base_contest_ranking_list', 'ContestProblemMakePublic', 'ContestSubmissionFeed',
+           'ContestSubmissionFeedPage']
+
+
+RECENT_SUBMISSION_LIMIT = 5
+RECENT_SUBMISSION_WINDOW = timedelta(minutes=3)
+
+
+def can_view_live_submissions(contest, request):
+    if contest.can_see_full_scoreboard(request.user):
+        return True
+
+    supplied_code = request.GET.get('code', '')
+    return bool(contest.ranking_access_code and supplied_code and
+                constant_time_compare(contest.ranking_access_code, supplied_code))
+
+
+def live_submissions_context(contest, request):
+    feed_url = reverse('contest_submission_feed', args=[contest.key])
+    page_url = reverse('contest_submission_live', args=[contest.key])
+    supplied_code = request.GET.get('code', '')
+    if supplied_code and contest.ranking_access_code and \
+            constant_time_compare(contest.ranking_access_code, supplied_code):
+        query = urlencode({'code': supplied_code})
+        feed_url = f'{feed_url}?{query}'
+        page_url = f'{page_url}?{query}'
+
+    return {
+        'can_view_live_submissions': can_view_live_submissions(contest, request),
+        'live_submission_feed_url': feed_url,
+        'live_submission_page_url': page_url,
+        'live_submission_channel': f'contest_{contest.id}',
+    }
 
 
 def _find_contest(request, key, private_check=True):
@@ -231,6 +266,7 @@ class ContestMixin(object):
             context['logo_override_image'] = self.object.organization.logo_override_image
 
         context['is_ICPC_format'] = (self.object.format.name == ICPCContestFormat.name)
+        context.update(live_submissions_context(self.object, self.request))
         return context
 
     def get_object(self, queryset=None):
@@ -806,6 +842,139 @@ class ContestStats(TitleMixin, ContestMixin, DetailView):
         if not self.can_edit:
             raise Http404()
         return super().dispatch(request, *args, **kwargs)
+
+
+class ContestSubmissionFeed(ContestMixin, DetailView):
+    http_method_names = ['get']
+
+    def get(self, request, *args, **kwargs):
+        contest = self.get_object()
+        if not can_view_live_submissions(contest, request):
+            response = JsonResponse({'detail': str(_('You are not allowed to view live submissions.'))}, status=403)
+            response['Cache-Control'] = 'no-store'
+            return response
+
+        submissions = Submission.objects.filter(
+            contest__participation__contest=contest,
+            contest__participation__virtual=ContestParticipation.LIVE,
+            date__gte=timezone.now() - RECENT_SUBMISSION_WINDOW,
+        )
+        if contest.is_frozen:
+            submissions = submissions.filter(date__lt=contest.frozen_time)
+
+        submissions = submissions.select_related(
+            'contest__problem', 'problem', 'user__user', 'user__display_badge',
+        ).prefetch_related(
+            Prefetch(
+                'test_cases',
+                queryset=SubmissionTestCase.objects.order_by('case'),
+                to_attr='live_test_cases',
+            ),
+            Prefetch(
+                'user__organizations',
+                queryset=Organization.objects.filter(is_unlisted=False),
+            ),
+        ).order_by('-date', '-id')[:RECENT_SUBMISSION_LIMIT]
+
+        hidden_subtasks = contest.format.get_hidden_subtasks() if contest.format.has_hidden_subtasks else {}
+        mask_hidden_results = not contest.ended and not contest.is_editable_by(request.user)
+        data = []
+        has_pending = False
+        batch_scorings = {}
+        for submission in submissions:
+            contest_submission = submission.contest
+            is_graded = submission.is_graded
+            problem_hidden_subtasks = hidden_subtasks.get(str(contest_submission.problem_id), set())
+            problem_has_hidden_subtasks = bool(problem_hidden_subtasks)
+            is_masked = mask_hidden_results and problem_has_hidden_subtasks and is_graded and \
+                submission.status not in ('IE', 'CE', 'AB')
+            has_pending = has_pending or not is_graded
+            points = contest_submission.points if is_graded else None
+            if is_masked:
+                if submission.problem_id not in batch_scorings:
+                    batch_scorings[submission.problem_id] = get_batch_scorings(submission.problem)
+                points = calculate_visible_problem_score(
+                    submission.live_test_cases,
+                    batch_scorings[submission.problem_id],
+                    problem_hidden_subtasks,
+                    contest_submission.problem.points,
+                )
+
+            organization = submission.user.organization
+            full_name = submission.user.user.get_full_name().strip()
+            display_name = submission.user.display_name
+            display_badge = submission.user.display_badge
+            data.append({
+                'id': submission.id,
+                'url': reverse('submission_status', args=[submission.id]),
+                'submitted_at': submission.date.isoformat(),
+                'user': {
+                    'username': submission.user.username,
+                    'name': display_name,
+                    'display_name': display_name,
+                    'full_name': full_name or None,
+                    'css_class': submission.user.css_class,
+                    'url': reverse('user_page', args=[submission.user.username]),
+                    'badge': None if display_badge is None else {
+                        'name': display_badge.name,
+                        'image_url': display_badge.mini,
+                    },
+                    'organization': None if organization is None else {
+                        'name': organization.name,
+                        'short_name': organization.short_name,
+                        'url': organization.get_absolute_url(),
+                    },
+                },
+                'problem': {
+                    'code': submission.problem.code,
+                    'name': submission.problem.name,
+                    'label': contest.get_label_for_problem(contest_submission.problem.order),
+                    'url': reverse('problem_detail', args=[submission.problem.code]),
+                },
+                'status': submission.short_status,
+                'status_display': str(_('Hidden')) if is_masked else submission.short_status,
+                'status_label': str(_('Hidden')) if is_masked else str(submission.long_status),
+                'result_class': 'masked' if is_masked else submission.result_class or submission.status,
+                'points': points,
+                'is_graded': is_graded,
+                'is_masked': is_masked,
+            })
+
+        response = JsonResponse({
+            'submissions': data,
+            'frozen': contest.is_frozen,
+            'generated_at': timezone.now().isoformat(),
+            'next_poll_ms': 1500 if has_pending else 5000,
+        })
+        response['Cache-Control'] = 'no-store'
+        return response
+
+
+class ContestSubmissionFeedPage(TitleMixin, ContestMixin, DetailView):
+    http_method_names = ['get']
+
+    def get_title(self):
+        return _('%s Live Submissions') % self.object.name
+
+    def get_template_names(self):
+        if self.request.GET.get('embed') == '1':
+            return ['contest/live-submissions-embed.html']
+        return ['contest/live-submissions.html']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tab'] = 'live_submissions'
+        context['embed_theme'] = 'light' if self.request.GET.get('theme') == 'light' else 'dark'
+        return context
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if not can_view_live_submissions(self.object, request):
+            response = HttpResponseForbidden(_('You are not allowed to view live submissions.'))
+        else:
+            response = self.render_to_response(self.get_context_data(object=self.object))
+        response['Cache-Control'] = 'no-store'
+        return response
 
 
 ContestRankingProfile = namedtuple(
