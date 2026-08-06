@@ -8986,6 +8986,42 @@ msgstr "Bài nộp gần đây"
 msgid "Live submissions"
 msgstr "Bài nộp trực tiếp"
 
+#: templates/problem/data.html
+msgid "Enter at least one batch size."
+msgstr "Nhập ít nhất một kích thước batch."
+
+#: templates/problem/data.html
+msgid "Batch sizes must be positive integers separated by commas."
+msgstr "Số lượng test trong mỗi batch phải là số nguyên dương, cách nhau bằng dấu phẩy."
+
+#: templates/problem/data.html
+msgid "Undo pending row deletions before splitting batches."
+msgstr "Hoàn tác các dòng đang được đánh dấu xóa trước khi chia batch."
+
+#: templates/problem/data.html
+msgid "Batch sizes cover {expected} tests, but the table has {actual} test rows."
+msgstr "Danh sách kích thước bao phủ {expected} test, nhưng bảng hiện có {actual} dòng test."
+
+#: templates/problem/data.html
+msgid "Batch {batch} contains both pretests and regular tests."
+msgstr "Batch {batch} chứa cả pretest và test chính."
+
+#: templates/problem/data.html
+msgid "Splitting requires {rows} rows, exceeding the limit of {limit}."
+msgstr "Việc chia batch cần {rows} dòng, vượt quá giới hạn {limit}."
+
+#: templates/problem/data.html
+msgid "Split {tests} tests into {batches} batches."
+msgstr "Đã chia {tests} test thành {batches} batch."
+
+#: templates/problem/data.html
+msgid "Tests per batch"
+msgstr "Số test mỗi batch"
+
+#: templates/problem/data.html
+msgid "Split batches"
+msgstr "Chia batch"
+
 #~ msgid "Order in contest"
 #~ msgstr "Thứ tự của bài tập trong kỳ thi"
 

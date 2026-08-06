@@ -7331,3 +7331,39 @@ msgstr ""
 #: templates/contest/contest-tabs.html
 msgid "Live submissions"
 msgstr ""
+
+#: templates/problem/data.html
+msgid "Enter at least one batch size."
+msgstr ""
+
+#: templates/problem/data.html
+msgid "Batch sizes must be positive integers separated by commas."
+msgstr ""
+
+#: templates/problem/data.html
+msgid "Undo pending row deletions before splitting batches."
+msgstr ""
+
+#: templates/problem/data.html
+msgid "Batch sizes cover {expected} tests, but the table has {actual} test rows."
+msgstr ""
+
+#: templates/problem/data.html
+msgid "Batch {batch} contains both pretests and regular tests."
+msgstr ""
+
+#: templates/problem/data.html
+msgid "Splitting requires {rows} rows, exceeding the limit of {limit}."
+msgstr ""
+
+#: templates/problem/data.html
+msgid "Split {tests} tests into {batches} batches."
+msgstr ""
+
+#: templates/problem/data.html
+msgid "Tests per batch"
+msgstr ""
+
+#: templates/problem/data.html
+msgid "Split batches"
+msgstr ""

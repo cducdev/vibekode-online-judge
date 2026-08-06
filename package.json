@@ -2,8 +2,9 @@
   "name": "@vnoi-admin/oj",
   "type": "module",
   "scripts": {
-    "format": "prettier --write websocket",
-    "format:check": "prettier --check websocket"
+    "format": "prettier --write websocket resources/problem_data_batch.js tests/js/problem_data_batch.test.js",
+    "format:check": "prettier --check websocket resources/problem_data_batch.js tests/js/problem_data_batch.test.js",
+    "test:problem-data-batch": "node --test tests/js/problem_data_batch.test.js"
   },
   "dependencies": {
     "@commander-js/extra-typings": "11.0.0",

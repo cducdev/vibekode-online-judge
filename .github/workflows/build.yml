@@ -65,5 +65,7 @@ jobs:
           node-version: '20.x'
       - name: Install npm packages
         run: npm ci
+      - name: Test problem data batch tools
+        run: npm run test:problem-data-batch
       - name: Build style.css
         run: ./make_style.sh

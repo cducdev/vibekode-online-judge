@@ -510,3 +510,28 @@ ul.problem-list {
     margin-top: 10px;
     border: 1px solid $color_problem_tab_border;
 }
+
+.batch-split-controls {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5em;
+
+    #batch-sizes {
+        width: 16em;
+        max-width: 100%;
+    }
+
+    #batch-split-status {
+        flex-basis: 100%;
+        min-height: 1.25em;
+
+        &.batch-split-error {
+            color: $color_danger100;
+        }
+
+        &.batch-split-success {
+            color: $color_success100;
+        }
+    }
+}

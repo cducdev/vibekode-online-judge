@@ -6,6 +6,7 @@
     <script type="text/javascript" src="{{ static('vnoj/jquery-ui/jquery-ui.min.js') }}"></script>
     <script type="text/javascript" src="{{ static('libs/featherlight/featherlight.min.js') }}"></script>
     <script type="text/javascript" src="{{ static('vnoj/jszip/jszip.min.js') }}"></script>
+    <script type="text/javascript" src="{{ static('problem_data_batch.js') }}"></script>
     <script type="text/javascript">
         window.valid_files = {{valid_files_json}}.sort();
         window.testcase_limit = {{testcase_limit}};
@@ -525,6 +526,31 @@
             var $total = $('#id_cases-TOTAL_FORMS');
             var alerted = false;
 
+            var $batchSizes = $('#batch-sizes');
+            var batchController = window.VKOJProblemDataBatch.createController({
+                $: window.jQuery,
+                $table: $table,
+                $total: $total,
+                $input: $batchSizes,
+                $status: $('#batch-split-status'),
+                $applyButton: $('#apply-batch-sizes'),
+                testcaseLimit: window.testcase_limit,
+                addRow: function () {
+                    $('a#add-case-row').click();
+                },
+                handleTableReorder: handle_table_reorder,
+                messages: {
+                    empty: {{ _('Enter at least one batch size.')|htmltojs }},
+                    invalid: {{ _('Batch sizes must be positive integers separated by commas.')|htmltojs }},
+                    pendingDeletes: {{ _('Undo pending row deletions before splitting batches.')|htmltojs }},
+                    countMismatch: {{ _('Batch sizes cover {expected} tests, but the table has {actual} test rows.')|htmltojs }},
+                    mixedPretests: {{ _('Batch {batch} contains both pretests and regular tests.')|htmltojs }},
+                    limitExceeded: {{ _('Splitting requires {rows} rows, exceeding the limit of {limit}.')|htmltojs }},
+                    success: {{ _('Split {tests} tests into {batches} batches.')|htmltojs }},
+                },
+            });
+            batchController.bind();
+
             $('a#add-case-row').click(function () {
                 total = parseInt($total.val());
                 if (total >= window.testcase_soft_limit) {
@@ -659,21 +685,28 @@
                     alert(s);
                     return false;
                 }
-                n_test = Math.min(inFiles.length, window.testcase_limit);
-                // add boxes
-                while ($total.val() < n_test) {
-                    $('a#add-case-row').click();
+                var n_test = Math.min(inFiles.length, window.testcase_limit);
+                // Add normal-case rows without counting existing batch markers.
+                while (batchController.rowsOfType('C').length < n_test) {
+                    if (!batchController.addCaseRow().length)
+                        return false;
                 }
                 // natsort
                 var collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
                 inFiles.sort(collator.compare);
                 outFiles.sort(collator.compare);
                 // fill cases
+                var $normalRows = batchController.rowsOfType('C');
                 for (var i = 0; i < n_test; i++) {
-                    $("#id_cases-" + i + "-input_file").append(new Option(inFiles[i], inFiles[i], true, true)).change();
-                    $("#id_cases-" + i + "-output_file").append(new Option(outFiles[i], outFiles[i], true, true)).change();
-                    $("#id_cases-" + i + "-points").val("1").change();
+                    var $row = $normalRows.eq(i);
+                    $row.find('select[id$=input_file]')
+                        .append(new Option(inFiles[i], inFiles[i], true, true)).change();
+                    $row.find('select[id$=output_file]')
+                        .append(new Option(outFiles[i], outFiles[i], true, true)).change();
+                    $row.find('input[id$=points]').val('1').change();
                 }
+                if ($batchSizes.val().trim())
+                    batchController.apply();
                 $("#fill-test-case-noti").show();
                 if (inFiles.length > window.testcase_limit) {
                     s = `{{_('Too many testcases')}}: ${inFiles.length}`;
@@ -903,6 +936,19 @@
         {{ cases_formset.management_form }}
         <table class="table">
             {{ data_form.as_table() }}
+            <tr>
+                <th><label for="batch-sizes">{{ _('Tests per batch') }}:</label></th>
+                <td>
+                    <div class="batch-split-controls">
+                        <input id="batch-sizes" type="text" placeholder="8, 10, 10, 12" autocomplete="off">
+                        <button id="apply-batch-sizes" type="button" class="button">
+                            <i class="fa fa-object-group" aria-hidden="true"></i>
+                            {{ _('Split batches') }}
+                        </button>
+                        <span id="batch-split-status" role="status" aria-live="polite"></span>
+                    </div>
+                </td>
+            </tr>
         </table>
         <div id="problem-data-upload-progress" role="status" aria-live="polite">
             <div id="problem-data-upload-progress-text">{{ _('Uploading test data...') }}</div>
