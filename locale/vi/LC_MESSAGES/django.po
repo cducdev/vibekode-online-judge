@@ -4517,7 +4517,6 @@ msgstr "Tính lại điểm cho %s..."
 msgid "Successfully scheduled %d submission for rejudging."
 msgid_plural "Successfully scheduled %d submissions for rejudging."
 msgstr[0] "Đã lên lịch chấm lại %d bài giải"
-msgstr[1] "Đã lên lịch chấm lại %d bài giải"
 
 #: judge/views/ranked_submission.py:67 judge/views/ranked_submission.py:70
 #, python-format
@@ -6897,7 +6896,6 @@ msgstr ""
 msgid "Author:"
 msgid_plural "Authors:"
 msgstr[0] "Tác giả:"
-msgstr[1] "Các tác giả:"
 
 #: templates/problem/import-polygon.html:95
 msgid "Not valid Polygon package"
@@ -7068,7 +7066,6 @@ msgstr "Gửi bài giải"
 msgid "%(counter)s submission left"
 msgid_plural "%(counter)s submissions left"
 msgstr[0] "Còn %(counter)s lần nộp"
-msgstr[1] "Còn %(counter)s lần nộp"
 
 #: templates/problem/problem.html:231
 msgid "0 submissions left"
@@ -7139,7 +7136,6 @@ msgstr "Nguồn bài:"
 msgid "Problem type"
 msgid_plural "Problem types"
 msgstr[0] "Dạng bài"
-msgstr[1] "Dạng bài"
 
 #: templates/problem/problem.html:405
 msgid "Allowed languages"
@@ -7154,7 +7150,6 @@ msgstr "Không có máy chấm %(lang)s đang online"
 msgid "Judge:"
 msgid_plural "Judges:"
 msgstr[0] "Máy chấm"
-msgstr[1] "Các máy chấm"
 
 #: templates/problem/problem.html:441
 msgid "none available"
@@ -7391,7 +7386,7 @@ msgstr ""
 
 #: templates/registration/activation_email_subject.txt:1
 #, python-format
-msgid "Activate your %(SITE_NAME)s account)"
+msgid "Activate your %(SITE_NAME)s account"
 msgstr "Kích hoạt tài khoản %(SITE_NAME)s"
 
 #: templates/registration/login.html:9
@@ -9021,6 +9016,22 @@ msgstr "Số test mỗi batch"
 #: templates/problem/data.html
 msgid "Split batches"
 msgstr "Chia batch"
+
+#: judge/utils/turnstile.py
+msgid "Please complete the security check."
+msgstr "Vui lòng hoàn tất bước xác minh bảo mật."
+
+#: judge/utils/turnstile.py
+msgid "We could not verify the security check. Please try again."
+msgstr "Không thể xác minh bước kiểm tra bảo mật. Vui lòng thử lại."
+
+#: judge/utils/turnstile.py
+msgid "The security verification service is temporarily unavailable. Please try again."
+msgstr "Dịch vụ xác minh bảo mật đang tạm thời gián đoạn. Vui lòng thử lại."
+
+#: judge/views/register.py
+msgid "You have sent too many registration requests. Please try again later."
+msgstr "Bạn đã gửi quá nhiều yêu cầu đăng ký. Vui lòng thử lại sau."
 
 #~ msgid "Order in contest"
 #~ msgstr "Thứ tự của bài tập trong kỳ thi"

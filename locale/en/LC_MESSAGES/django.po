@@ -6181,7 +6181,7 @@ msgstr ""
 
 #: templates/registration/activation_email_subject.txt:1
 #, python-format
-msgid "Activate your %(SITE_NAME)s account)"
+msgid "Activate your %(SITE_NAME)s account"
 msgstr ""
 
 #: templates/registration/login.html:35
@@ -7366,4 +7366,20 @@ msgstr ""
 
 #: templates/problem/data.html
 msgid "Split batches"
+msgstr ""
+
+#: judge/utils/turnstile.py
+msgid "Please complete the security check."
+msgstr ""
+
+#: judge/utils/turnstile.py
+msgid "We could not verify the security check. Please try again."
+msgstr ""
+
+#: judge/utils/turnstile.py
+msgid "The security verification service is temporarily unavailable. Please try again."
+msgstr ""
+
+#: judge/views/register.py
+msgid "You have sent too many registration requests. Please try again later."
 msgstr ""

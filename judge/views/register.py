@@ -1,12 +1,15 @@
 # coding=utf-8
+import hashlib
 import re
 
 from django import forms
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import get_default_password_validators
+from django.core.cache import cache
 from django.db import transaction
 from django.forms import ChoiceField, ModelChoiceField
+from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils.translation import gettext, gettext_lazy as _, ngettext
 from registration.backends.default.views import (ActivationView as OldActivationView,
@@ -18,6 +21,7 @@ from judge.forms import SocialAuthMixin
 from judge.models import Language, Organization, Profile, TIMEZONE
 from judge.utils.recaptcha import ReCaptchaField, ReCaptchaWidget
 from judge.utils.subscription import Subscription, newsletter_id
+from judge.utils.turnstile import TurnstileField
 from judge.widgets import Select2MultipleWidget, Select2Widget
 
 bad_mail_regex = list(map(re.compile, settings.BAD_MAIL_PROVIDER_REGEX))
@@ -41,6 +45,18 @@ class CustomRegistrationForm(RegistrationForm):
 
     if ReCaptchaField is not None:
         captcha = ReCaptchaField(widget=ReCaptchaWidget())
+
+    def __init__(self, *args, request=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if settings.REGISTRATION_REQUIRE_TURNSTILE:
+            self.fields['turnstile'] = TurnstileField(
+                site_key=settings.TURNSTILE_SITE_KEY,
+                secret_key=settings.TURNSTILE_SECRET_KEY,
+                action=settings.TURNSTILE_REGISTRATION_ACTION,
+                expected_hostnames=settings.TURNSTILE_EXPECTED_HOSTNAMES,
+                remote_ip=request.META.get('REMOTE_ADDR') if request else None,
+                timeout=settings.TURNSTILE_VERIFY_TIMEOUT,
+            )
 
     def clean_email(self):
         if User.objects.filter(email=self.cleaned_data['email']).exists():
@@ -69,6 +85,47 @@ class RegistrationView(OldRegistrationView):
     form_class = CustomRegistrationForm
     social_auth = SocialAuthMixin()
     template_name = 'registration/registration_form.html'
+
+    def registration_allowed(self):
+        if not super().registration_allowed():
+            return False
+        if settings.REGISTRATION_REQUIRE_EMAIL_VERIFICATION and not settings.SEND_ACTIVATION_EMAIL:
+            return False
+        if settings.REGISTRATION_REQUIRE_TURNSTILE:
+            return all((
+                settings.TURNSTILE_SITE_KEY,
+                settings.TURNSTILE_SECRET_KEY,
+                settings.TURNSTILE_EXPECTED_HOSTNAMES,
+            ))
+        return True
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['request'] = self.request
+        return kwargs
+
+    def post(self, request, *args, **kwargs):
+        limit = settings.DMOJ_REGISTRATION_LIMIT_COUNT
+        window = settings.DMOJ_REGISTRATION_LIMIT_WINDOW
+        if limit > 0:
+            remote_ip = request.META.get('REMOTE_ADDR', 'unknown')
+            remote_ip_hash = hashlib.sha256(remote_ip.encode()).hexdigest()
+            key = 'registration!%s' % remote_ip_hash
+            cache.add(key, 0, timeout=window)
+            try:
+                attempt_count = cache.incr(key)
+            except ValueError:
+                cache.set(key, 1, timeout=window)
+                attempt_count = 1
+            if attempt_count > limit:
+                response = HttpResponse(
+                    gettext('You have sent too many registration requests. Please try again later.'),
+                    content_type='text/plain',
+                    status=429,
+                )
+                response['Retry-After'] = str(window)
+                return response
+        return super().post(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         if 'title' not in kwargs:
