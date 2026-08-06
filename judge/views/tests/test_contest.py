@@ -330,6 +330,15 @@ class ContestLiveSubmissionsTestCase(TestCase):
         self.assertContains(response, f'data-event-channel="contest_{self.contest.id}"')
         self.assertNotContains(response, 'id="navigation"')
 
+    def test_ranking_does_not_embed_live_submissions(self):
+        self.client.force_login(self.editor)
+        response = self.client.get(reverse('contest_ranking', args=[self.contest.key]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotContains(response, 'data-live-mode-toggle')
+        self.assertNotContains(response, 'contest-live-submissions-ranking')
+        self.assertNotContains(response, 'contest-live-submissions.js')
+
 
 class ContestProblemMakePublicTestCase(TestCase):
     @classmethod

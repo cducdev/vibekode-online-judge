@@ -8986,22 +8986,6 @@ msgstr "Bài nộp gần đây"
 msgid "Live submissions"
 msgstr "Bài nộp trực tiếp"
 
-#: templates/contest/ranking.html
-msgid "Live: off"
-msgstr "Trực tiếp: tắt"
-
-#: templates/contest/ranking.html
-msgid "Live: floating"
-msgstr "Trực tiếp: nổi"
-
-#: templates/contest/ranking.html
-msgid "Live: side"
-msgstr "Trực tiếp: bên cạnh"
-
-#: templates/contest/ranking.html
-msgid "Open live submissions"
-msgstr "Mở bài nộp trực tiếp"
-
 #~ msgid "Order in contest"
 #~ msgstr "Thứ tự của bài tập trong kỳ thi"
 

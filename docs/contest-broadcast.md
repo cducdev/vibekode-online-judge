@@ -54,9 +54,10 @@ The embed always uses large broadcast typography and a two-row submission
 layout. It hides the relative-time column so names and results remain readable
 without depending on viewport-specific breakpoints.
 
-The ranking page also has a `Live` control. Repeated clicks cycle the recent
-submission panel through off, floating, and side modes; the selected mode is
-stored per contest in browser local storage.
+Keep the regular contest ranking page as the scoreboard browser source and add
+the recent-submissions embed as a separate browser source in the same OBS
+scene. The ranking page intentionally does not embed the recent-submissions
+panel.
 
 ## VNOI Resolver export
 

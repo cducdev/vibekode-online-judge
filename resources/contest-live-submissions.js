@@ -198,52 +198,8 @@
         load();
     }
 
-    function initModeToggle(button) {
-        var layout = document.getElementById(button.dataset.target);
-        if (!layout) return;
-        var panel = layout.querySelector('[data-live-submissions-panel]');
-        var feed = panel.querySelector('[data-live-submissions]');
-        var modes = ['off', 'float', 'side'];
-        var storageKey = button.dataset.storageKey;
-        var mode = 'off';
-
-        try {
-            var stored = window.localStorage.getItem(storageKey);
-            if (modes.indexOf(stored) !== -1) mode = stored;
-        } catch (error) {
-            mode = 'off';
-        }
-
-        function labelFor(currentMode) {
-            if (currentMode === 'float') return button.dataset.floatLabel;
-            if (currentMode === 'side') return button.dataset.sideLabel;
-            return button.dataset.offLabel;
-        }
-
-        function applyMode(currentMode) {
-            mode = currentMode;
-            layout.dataset.liveMode = mode;
-            panel.hidden = mode === 'off';
-            button.setAttribute('aria-expanded', mode === 'off' ? 'false' : 'true');
-            button.title = labelFor(mode);
-            button.querySelector('[data-live-mode-label]').textContent = labelFor(mode);
-            try {
-                window.localStorage.setItem(storageKey, mode);
-            } catch (error) {
-                // The control still works when local storage is unavailable.
-            }
-            if (mode !== 'off') feed.dispatchEvent(new CustomEvent('contest-live:show'));
-        }
-
-        button.addEventListener('click', function () {
-            applyMode(modes[(modes.indexOf(mode) + 1) % modes.length]);
-        });
-        applyMode(mode);
-    }
-
     function init() {
         document.querySelectorAll('[data-live-submissions]').forEach(initFeed);
-        document.querySelectorAll('[data-live-mode-toggle]').forEach(initModeToggle);
     }
 
     if (document.readyState === 'loading') {

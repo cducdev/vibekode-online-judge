@@ -7331,19 +7331,3 @@ msgstr ""
 #: templates/contest/contest-tabs.html
 msgid "Live submissions"
 msgstr ""
-
-#: templates/contest/ranking.html
-msgid "Live: off"
-msgstr ""
-
-#: templates/contest/ranking.html
-msgid "Live: floating"
-msgstr ""
-
-#: templates/contest/ranking.html
-msgid "Live: side"
-msgstr ""
-
-#: templates/contest/ranking.html
-msgid "Open live submissions"
-msgstr ""

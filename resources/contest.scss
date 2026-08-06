@@ -328,71 +328,6 @@ form.contest-join-pseudotab {
     }
 }
 
-.contest-live-submissions-controls {
-    float: right;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    margin-left: 0.75rem;
-
-    .contest-live-mode-toggle {
-        min-width: 7.5rem;
-    }
-
-    .contest-live-open-page {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 2rem;
-        height: 2rem;
-        border: 1px solid $color_primary25;
-        border-radius: 4px;
-        color: $color_link50;
-        background: $color_primary0;
-
-        &:hover {
-            color: $color_link100;
-            background: $color_primary10;
-        }
-    }
-}
-
-.contest-live-ranking-layout {
-    min-width: 0;
-
-    [data-live-submissions-panel][hidden] {
-        display: none;
-    }
-
-    &[data-live-mode='side'] {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr) minmax(22rem, 24rem);
-        gap: 1rem;
-        align-items: start;
-
-        [data-live-submissions-panel] {
-            position: sticky;
-            top: 4rem;
-        }
-    }
-
-    .contest-live-ranking-table {
-        min-width: 0;
-        overflow-x: auto;
-    }
-
-    &[data-live-mode='float'] [data-live-submissions-panel] {
-        position: fixed;
-        right: 1rem;
-        bottom: 1rem;
-        z-index: 1000;
-        width: min(26rem, calc(100vw - 2rem));
-        max-height: calc(100vh - 5rem);
-        overflow-y: auto;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
-    }
-}
-
 .contest-live-submissions-page {
     width: min(34rem, 100%);
     margin: 0 auto;
@@ -700,24 +635,7 @@ body.contest-live-submissions-embed {
     }
 }
 
-@media (max-width: 64em) {
-    .contest-live-ranking-layout[data-live-mode='side'] {
-        display: block;
-
-        [data-live-submissions-panel] {
-            position: static;
-            width: min(34rem, 100%);
-            margin: 1rem 0 0 auto;
-        }
-    }
-}
-
 @media (max-width: 34em) {
-    .contest-live-submissions-controls {
-        float: none;
-        margin: 0.5rem 0 0;
-    }
-
     .contest-live-submissions .contest-live-submission {
         grid-template-columns: minmax(0, 1fr) 2.1rem 6.5rem;
 
