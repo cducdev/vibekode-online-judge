@@ -514,6 +514,7 @@ ul.problem-list {
 .batch-split-controls {
     display: flex;
     align-items: center;
+    justify-content: center;
     flex-wrap: wrap;
     gap: 0.5em;
 
@@ -525,6 +526,7 @@ ul.problem-list {
     #batch-split-status {
         flex-basis: 100%;
         min-height: 1.25em;
+        text-align: center;
 
         &.batch-split-error {
             color: $color_danger100;
