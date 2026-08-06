@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.template.loader import render_to_string
 from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import reverse
+from django.utils.translation import override as translation_override
 
 from judge.checks import registration_security_check
 from judge.models import Language
@@ -105,6 +106,10 @@ class ActivationEmailTemplateTestCase(SimpleTestCase):
         self.assertNotIn('http://oj.example.test', body)
         self.assertNotIn('reply to this message', body)
         self.assertIn('mailto:support@example.test', html)
+
+        with translation_override('vi'):
+            vietnamese_body = render_to_string('registration/activation_email.txt', context)
+        self.assertIn('Vui lòng kích hoạt tài khoản VKOJ của bạn trong vòng 7 ngày tới.', vietnamese_body)
 
 
 @override_settings(
