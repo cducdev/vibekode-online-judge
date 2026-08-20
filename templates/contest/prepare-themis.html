@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block media %}
+    <style>
+        .themis-export-form {
+            padding-top: 15px;
+            max-width: 520px;
+        }
+
+        .themis-export-form fieldset {
+            border: 0;
+            margin: 0 0 1em;
+            padding: 0;
+        }
+
+        .themis-export-form legend {
+            font-weight: 600;
+            margin-bottom: 0.5em;
+        }
+
+        .themis-export-form .helptext {
+            display: block;
+            margin-top: 0.5em;
+        }
+
+        .themis-export-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5em;
+            margin-top: 1em;
+        }
+    </style>
+{% endblock %}
+
+{% block js_media %}
+    <script type="text/javascript">
+        $(function () {
+            $('#prepare-themis').click(function () {
+                return confirm({{ _('Are you sure you want to create a Themis ZIP file?')|htmltojs }});
+            });
+        });
+    </script>
+{% endblock %}
+
+{% block body %}
+    <div class="themis-export-form">
+        {% if in_progress_url %}
+            <div class="alert alert-warning">
+                {{ _('A Themis submission package is currently being prepared.') }}
+            </div>
+            <a class="button" href="{{ in_progress_url }}">{{ _('Track progress') }}</a>
+        {% else %}
+            <form method="post">
+                {% csrf_token %}
+                {% if form.non_field_errors() %}
+                    <div class="alert alert-danger">{{ form.non_field_errors() }}</div>
+                {% endif %}
+                <fieldset>
+                    <legend>{{ form.submission_selection.label }}</legend>
+                    {{ form.submission_selection }}
+                    {% if form.submission_selection.errors %}
+                        <div class="form-error">{{ form.submission_selection.errors }}</div>
+                    {% endif %}
+                    <span class="helptext">{{ form.submission_selection.help_text }}</span>
+                </fieldset>
+                <button id="prepare-themis" type="submit">
+                    <i class="fa fa-cog"></i> {{ _('Create Themis ZIP file') }}
+                </button>
+            </form>
+        {% endif %}
+
+        {% if best_download_ready or last_download_ready %}
+            <div class="themis-export-actions">
+                {% if best_download_ready %}
+                    <a class="button" href="{{ url('contest_download_themis', contest.key, 'best') }}">
+                        <i class="fa fa-download"></i> {{ _('Download ZIP with best submissions') }}
+                    </a>
+                {% endif %}
+                {% if last_download_ready %}
+                    <a class="button" href="{{ url('contest_download_themis', contest.key, 'last') }}">
+                        <i class="fa fa-download"></i> {{ _('Download ZIP with last submissions') }}
+                    </a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}

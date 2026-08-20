@@ -9033,6 +9033,71 @@ msgstr "Dịch vụ xác minh bảo mật đang tạm thời gián đoạn. Vui 
 msgid "You have sent too many registration requests. Please try again later."
 msgstr "Bạn đã gửi quá nhiều yêu cầu đăng ký. Vui lòng thử lại sau."
 
+#: judge/forms.py
+msgid "Best submission for each problem"
+msgstr "Bài nộp tốt nhất cho mỗi bài"
+
+#: judge/forms.py
+msgid "Last submission for each problem"
+msgstr "Bài nộp cuối cùng cho mỗi bài"
+
+#: judge/forms.py
+msgid "Submission selection:"
+msgstr "Cách chọn bài nộp:"
+
+#: judge/forms.py
+msgid "The highest contest score is selected; ties use the latest submission."
+msgstr "Bài có điểm thi cao nhất sẽ được chọn; nếu bằng điểm, chọn bài nộp mới nhất."
+
+#: judge/tasks/themis.py
+msgid "Selecting submissions for Themis"
+msgstr "Đang chọn bài nộp cho Themis"
+
+#: judge/tasks/themis.py
+msgid "Preparing Themis submission package"
+msgstr "Đang chuẩn bị gói bài nộp Themis"
+
+#: judge/views/contests.py
+msgid "Please wait until the contest has ended to export submissions for Themis."
+msgstr "Vui lòng đợi kỳ thi kết thúc để xuất bài nộp cho Themis."
+
+#: judge/views/contests.py
+msgid "Export submissions for Themis"
+msgstr "Xuất bài nộp cho Themis"
+
+#: judge/views/contests.py
+#, python-format
+msgid "Preparing Themis package for %s..."
+msgstr "Đang chuẩn bị gói Themis cho %s..."
+
+#: judge/views/contests.py
+msgid "A Themis export is already being prepared for this contest."
+msgstr "Một gói xuất Themis khác của kỳ thi này đang được chuẩn bị."
+
+#: templates/contest/contest.html
+msgid "Export for Themis"
+msgstr "Xuất cho Themis"
+
+#: templates/contest/prepare-themis.html
+msgid "Are you sure you want to create a Themis ZIP file?"
+msgstr "Bạn có chắc muốn tạo file ZIP Themis?"
+
+#: templates/contest/prepare-themis.html
+msgid "A Themis submission package is currently being prepared."
+msgstr "Một gói bài nộp Themis đang được chuẩn bị."
+
+#: templates/contest/prepare-themis.html
+msgid "Create Themis ZIP file"
+msgstr "Tạo file ZIP Themis"
+
+#: templates/contest/prepare-themis.html
+msgid "Download ZIP with best submissions"
+msgstr "Tải ZIP bài nộp tốt nhất"
+
+#: templates/contest/prepare-themis.html
+msgid "Download ZIP with last submissions"
+msgstr "Tải ZIP bài nộp cuối cùng"
+
 #~ msgid "Order in contest"
 #~ msgstr "Thứ tự của bài tập trong kỳ thi"
 

@@ -24,6 +24,7 @@ from judge.models import BlogPost, Contest, ContestAnnouncement, ContestParticip
     LanguageLimit, Organization, Problem, Profile, Solution, Submission, Tag, WebAuthnCredential
 from judge.utils.subscription import newsletter_id
 from judge.utils.subtasks import clean_subtask_numbers
+from judge.utils.themis import THEMIS_SELECTION_BEST, THEMIS_SELECTION_LAST
 from judge.widgets import AceWidget, HeavySelect2MultipleWidget, HeavySelect2Widget, MartorWidget, \
     Select2MultipleWidget, Select2Widget
 
@@ -363,6 +364,19 @@ class ContestDownloadDataForm(Form):
         if not self.cleaned_data['submission_download']:
             return ()
         return self.cleaned_data['submission_result']
+
+
+class ContestThemisExportForm(Form):
+    submission_selection = ChoiceField(
+        choices=(
+            (THEMIS_SELECTION_BEST, _('Best submission for each problem')),
+            (THEMIS_SELECTION_LAST, _('Last submission for each problem')),
+        ),
+        initial=THEMIS_SELECTION_BEST,
+        label=_('Submission selection:'),
+        widget=forms.RadioSelect,
+        help_text=_('The highest contest score is selected; ties use the latest submission.'),
+    )
 
 
 class ProblemSubmitForm(ModelForm):

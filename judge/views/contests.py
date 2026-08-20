@@ -40,10 +40,10 @@ from reversion import revisions
 from judge.comments import CommentedDetailView
 from judge.contest_format import ICPCContestFormat
 from judge.forms import ContestAnnouncementForm, ContestCloneForm, ContestDownloadDataForm, ContestForm, \
-    ProposeContestProblemFormSet
+    ContestThemisExportForm, ProposeContestProblemFormSet
 from judge.models import Contest, ContestAnnouncement, ContestMoss, ContestParticipation, ContestProblem, ContestTag, \
     Language, Organization, Problem, ProblemClarification, Profile, Solution, Submission, SubmissionTestCase
-from judge.tasks import on_new_contest, prepare_contest_data, rescore_problem, run_moss
+from judge.tasks import on_new_contest, prepare_contest_data, prepare_contest_themis, rescore_problem, run_moss
 from judge.utils.celery import redirect_to_task_status, task_status_by_id, task_status_url_by_id
 from judge.utils.cms import parse_csv_ranking
 from judge.utils.infinite_paginator import InfinitePaginationMixin
@@ -52,6 +52,7 @@ from judge.utils.problems import _get_result_data, user_attempted_ids, user_comp
 from judge.utils.ranker import ranker
 from judge.utils.stats import get_bar_chart, get_pie_chart, get_stacked_bar_chart
 from judge.utils.subtasks import calculate_visible_problem_score, get_batch_scorings
+from judge.utils.themis import THEMIS_SELECTION_BEST, THEMIS_SELECTION_LAST, get_themis_archive_path
 from judge.utils.views import SingleObjectFormView, TitleMixin, \
     add_file_response, generic_message, paginate_query_context
 
@@ -398,6 +399,7 @@ class ContestDetail(ContestMixin, TitleMixin, CommentedDetailView):
             not self.object.ended and not self.object.is_editable_by(self.request.user)
 
         context['can_download_data'] = bool(settings.DMOJ_CONTEST_DATA_DOWNLOAD)
+        context['can_export_themis'] = bool(settings.DMOJ_CONTEST_THEMIS_EXPORT)
 
         return context
 
@@ -1607,6 +1609,97 @@ class ContestDownloadData(ContestDataMixin, SingleObjectMixin, View):
 
         response['Content-Type'] = 'application/zip'
         response['Content-Disposition'] = 'attachment; filename=%s-data.zip' % self.object.key
+        return response
+
+
+class ContestThemisMixin(ContestMixin, LoginRequiredMixin):
+    def archive_path(self, selection):
+        try:
+            return get_themis_archive_path(settings.DMOJ_CONTEST_THEMIS_CACHE, self.object.id, selection)
+        except ValueError:
+            raise Http404()
+
+    def get_object(self, queryset=None):
+        if not settings.DMOJ_CONTEST_THEMIS_EXPORT:
+            raise Http404()
+        if not settings.DMOJ_CONTEST_THEMIS_CACHE:
+            raise ImproperlyConfigured('DMOJ_CONTEST_THEMIS_CACHE must be configured')
+
+        contest = super().get_object(queryset)
+        if not contest.is_editable_by(self.request.user):
+            raise PermissionDenied(_('You are not allowed to edit this contest.'))
+        if not contest.ended:
+            raise PermissionDenied(_('Please wait until the contest has ended to export submissions for Themis.'))
+        return contest
+
+
+class ContestPrepareThemis(ContestThemisMixin, TitleMixin, SingleObjectMixin, FormView):
+    title = gettext_lazy('Export submissions for Themis')
+    template_name = 'contest/prepare-themis.html'
+    form_class = ContestThemisExportForm
+
+    @cached_property
+    def task_cache_key(self):
+        return 'celery_status_id:contest_themis_export_%s' % self.object.id
+
+    @cached_property
+    def in_progress_url(self):
+        status_id = cache.get(self.task_cache_key)
+        status = task_status_by_id(status_id).status if status_id else None
+        if status in ('PENDING', 'PROGRESS', 'STARTED'):
+            return self.build_task_url(status_id)
+        return None
+
+    def build_task_url(self, status_id):
+        return task_status_url_by_id(
+            status_id,
+            message=_('Preparing Themis package for %s...') % self.object.name,
+            redirect=reverse('contest_prepare_themis', args=(self.object.key,)),
+        )
+
+    def form_valid(self, form):
+        status = prepare_contest_themis.delay(
+            self.object.id,
+            form.cleaned_data['submission_selection'],
+        )
+        cache.set(self.task_cache_key, status.id, timeout=60 * 60)
+        return HttpResponseRedirect(self.build_task_url(status.id))
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['best_download_ready'] = os.path.exists(self.archive_path(THEMIS_SELECTION_BEST))
+        context['last_download_ready'] = os.path.exists(self.archive_path(THEMIS_SELECTION_LAST))
+        context['in_progress_url'] = self.in_progress_url
+        return context
+
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        return super().get(request, *args, **kwargs)
+
+    def post(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        if self.in_progress_url is not None:
+            raise PermissionDenied(_('A Themis export is already being prepared for this contest.'))
+        return super().post(request, *args, **kwargs)
+
+
+class ContestDownloadThemis(ContestThemisMixin, SingleObjectMixin, View):
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        selection = kwargs['selection']
+        archive_path = self.archive_path(selection)
+        if not os.path.exists(archive_path):
+            raise Http404()
+
+        internal_base = (settings.DMOJ_CONTEST_THEMIS_INTERNAL or '').rstrip('/')
+        url_path = '%s/%s-%s.zip' % (internal_base, self.object.id, selection) if internal_base else None
+        response = HttpResponse()
+        add_file_response(request, response, url_path, archive_path)
+        response['Content-Type'] = 'application/zip'
+        response['Content-Disposition'] = 'attachment; filename="%s-themis-%s.zip"' % (
+            self.object.key,
+            selection,
+        )
         return response
 
 

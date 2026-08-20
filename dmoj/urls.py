@@ -260,6 +260,9 @@ urlpatterns = [
         path('/stats', contests.ContestStats.as_view(), name='contest_stats'),
         path('/data/prepare/', contests.ContestPrepareData.as_view(), name='contest_prepare_data'),
         path('/data/download/', contests.ContestDownloadData.as_view(), name='contest_download_data'),
+        path('/themis/prepare/', contests.ContestPrepareThemis.as_view(), name='contest_prepare_themis'),
+        path('/themis/download/<str:selection>/', contests.ContestDownloadThemis.as_view(),
+             name='contest_download_themis'),
         path('/make_problems_public', contests.ContestProblemMakePublic.as_view(),
              name='contest_problems_make_public'),
 

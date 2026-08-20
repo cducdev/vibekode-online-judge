@@ -295,6 +295,11 @@ DMOJ_CONTEST_DATA_CACHE = ''
 DMOJ_CONTEST_DATA_INTERNAL = ''
 DMOJ_CONTEST_DATA_DOWNLOAD_RATELIMIT = datetime.timedelta(days=1)
 
+# Whether contest authors can export submissions in the directory layout expected by Themis.
+DMOJ_CONTEST_THEMIS_EXPORT = False
+DMOJ_CONTEST_THEMIS_CACHE = ''
+DMOJ_CONTEST_THEMIS_INTERNAL = ''
+
 DMOJ_COMMENT_VOTE_HIDE_THRESHOLD = -5
 DMOJ_COMMENT_REPLY_TIMEFRAME = datetime.timedelta(days=365)
 
