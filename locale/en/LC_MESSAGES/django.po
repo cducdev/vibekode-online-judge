@@ -7409,7 +7409,7 @@ msgid "Preparing Themis submission package"
 msgstr ""
 
 #: judge/views/contests.py
-msgid "Please wait until the contest has ended to export submissions for Themis."
+msgid "Submissions cannot be exported for Themis while the contest is running."
 msgstr ""
 
 #: judge/views/contests.py

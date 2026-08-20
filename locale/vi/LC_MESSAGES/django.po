@@ -9058,8 +9058,8 @@ msgid "Preparing Themis submission package"
 msgstr "Đang chuẩn bị gói bài nộp Themis"
 
 #: judge/views/contests.py
-msgid "Please wait until the contest has ended to export submissions for Themis."
-msgstr "Vui lòng đợi kỳ thi kết thúc để xuất bài nộp cho Themis."
+msgid "Submissions cannot be exported for Themis while the contest is running."
+msgstr "Không thể xuất bài nộp cho Themis khi kỳ thi đang diễn ra."
 
 #: judge/views/contests.py
 msgid "Export submissions for Themis"

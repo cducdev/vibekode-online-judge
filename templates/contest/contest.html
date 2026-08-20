@@ -196,7 +196,7 @@
             {% if can_edit and can_download_data %}
                 <a class="button" style="float:right" href="{{ url('contest_prepare_data', contest.key) }}">{{ _('Download data') }}</a>
             {% endif %}
-            {% if can_edit and contest.ended and can_export_themis %}
+            {% if can_edit and can_export_themis %}
                 <a class="button" style="float:right; margin-right: 10px" href="{{ url('contest_prepare_themis', contest.key) }}">
                     <i class="fa fa-download"></i> {{ _('Export for Themis') }}
                 </a>

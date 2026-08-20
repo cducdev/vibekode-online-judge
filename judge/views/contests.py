@@ -67,6 +67,11 @@ RECENT_SUBMISSION_LIMIT = 5
 RECENT_SUBMISSION_WINDOW = timedelta(minutes=3)
 
 
+def can_export_themis_at_current_time(contest):
+    now = timezone.now()
+    return now < contest.start_time or now > contest.end_time
+
+
 def can_view_live_submissions(contest, request):
     if contest.can_see_full_scoreboard(request.user):
         return True
@@ -399,7 +404,9 @@ class ContestDetail(ContestMixin, TitleMixin, CommentedDetailView):
             not self.object.ended and not self.object.is_editable_by(self.request.user)
 
         context['can_download_data'] = bool(settings.DMOJ_CONTEST_DATA_DOWNLOAD)
-        context['can_export_themis'] = bool(settings.DMOJ_CONTEST_THEMIS_EXPORT)
+        context['can_export_themis'] = bool(
+            settings.DMOJ_CONTEST_THEMIS_EXPORT and can_export_themis_at_current_time(self.object),
+        )
 
         return context
 
@@ -1628,8 +1635,8 @@ class ContestThemisMixin(ContestMixin, LoginRequiredMixin):
         contest = super().get_object(queryset)
         if not contest.is_editable_by(self.request.user):
             raise PermissionDenied(_('You are not allowed to edit this contest.'))
-        if not contest.ended:
-            raise PermissionDenied(_('Please wait until the contest has ended to export submissions for Themis.'))
+        if not can_export_themis_at_current_time(contest):
+            raise PermissionDenied(_('Submissions cannot be exported for Themis while the contest is running.'))
         return contest
 
 

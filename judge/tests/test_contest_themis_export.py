@@ -284,6 +284,13 @@ class ContestThemisExportViewTestCase(TestCase):
             is_visible=True,
             authors=(cls.editor.username,),
         )
+        cls.upcoming_contest = create_contest(
+            key='themis_export_upcoming',
+            start_time=now + timezone.timedelta(hours=1),
+            end_time=now + timezone.timedelta(hours=2),
+            is_visible=True,
+            authors=(cls.editor.username,),
+        )
 
     def setUp(self):
         self.directory = TemporaryDirectory()
@@ -309,7 +316,15 @@ class ContestThemisExportViewTestCase(TestCase):
         response = self.client.get(reverse('contest_view', args=[self.contest.key]))
         self.assertContains(response, self.prepare_url())
 
-    def test_export_requires_enabled_setting_editor_and_ended_contest(self):
+    def test_editor_can_export_upcoming_contest(self):
+        self.client.force_login(self.editor)
+        response = self.client.get(self.prepare_url(self.upcoming_contest))
+        self.assertEqual(response.status_code, 200)
+
+        response = self.client.get(reverse('contest_view', args=[self.upcoming_contest.key]))
+        self.assertContains(response, self.prepare_url(self.upcoming_contest))
+
+    def test_export_requires_enabled_setting_editor_and_inactive_contest(self):
         self.client.force_login(self.editor)
         with override_settings(DMOJ_CONTEST_THEMIS_EXPORT=False):
             response = self.client.get(self.prepare_url())
@@ -319,7 +334,11 @@ class ContestThemisExportViewTestCase(TestCase):
         self.assertContains(self.client.get(self.prepare_url()), 'Permission denied')
 
         self.client.force_login(self.editor)
-        self.assertContains(self.client.get(self.prepare_url(self.active_contest)), 'Permission denied')
+        response = self.client.get(self.prepare_url(self.active_contest))
+        self.assertContains(response, 'Permission denied')
+        self.assertNotContains(response, 'name="submission_selection"')
+        response = self.client.get(reverse('contest_view', args=[self.active_contest.key]))
+        self.assertNotContains(response, self.prepare_url(self.active_contest))
 
     def test_post_starts_dedicated_themis_task(self):
         self.client.force_login(self.editor)
